@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CardContent } from '@/components/ui/card';
-import { generateVideoScript } from '@/ai/flows/generate-video-script';
+import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { textToVideo } from '@/ai/flows/text-to-video';
 import { Loader2, Beaker } from 'lucide-react';
@@ -22,7 +22,7 @@ import defaultArtStyle from '@/lib/art-style-default.json';
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultArtStyle.art_style);
-  const [script, setScript] = useState('');
+  const [scriptOutput, setScriptOutput] = useState<GenerateVideoScriptOutput | null>(null);
   const [videoUri, setVideoUri] = useState('');
   const [previewOutput, setPreviewOutput] = useState(null);
   const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -33,14 +33,16 @@ export default function TestingPage() {
     try {
       if (flow === 'script') {
         const result = await generateVideoScript({ story, artStyle });
-        setScript(result.script);
+        setScriptOutput(result);
         toast({ title: 'Script Generated Successfully' });
       } else if (flow === 'preview') {
-        const result = await previewWithAiSuggestions({ videoScript: script || story });
+        const scriptText = scriptOutput ? JSON.stringify(scriptOutput) : story;
+        const result = await previewWithAiSuggestions({ videoScript: scriptText });
         setPreviewOutput(result as any);
         toast({ title: 'Preview Generated Successfully' });
       } else if (flow === 'video') {
-        const result = await textToVideo({ script: script || story });
+        const scriptText = scriptOutput ? scriptOutput.scenes.map(s => s.narrator).join('\n') : story;
+        const result = await textToVideo({ script: scriptText });
         setVideoUri(result.videoDataUri);
         toast({ title: 'Video Rendered Successfully' });
       }
@@ -100,11 +102,11 @@ export default function TestingPage() {
                 {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Script
               </Button>
-              {script && (
+              {scriptOutput && (
                 <div className="mt-4">
                   <h4 className="font-semibold">Output:</h4>
                   <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                    {script}
+                    {JSON.stringify(scriptOutput, null, 2)}
                   </pre>
                 </div>
               )}

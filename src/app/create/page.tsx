@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { generateVideoScript, GenerateVideoScriptInput } from '@/ai/flows/generate-video-script';
+import { generateVideoScript, GenerateVideoScriptInput, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { textToVideo } from '@/ai/flows/text-to-video';
 import { Stepper } from '@/components/ui/stepper';
 import { FacelessConfigForm, FormValues } from '@/components/forms/faceless-config-form';
@@ -25,7 +25,7 @@ const steps = [
 
 export default function VideoCreationPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [script, setScript] = useState('');
+  const [scenes, setScenes] = useState<GenerateVideoScriptOutput['scenes']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [videoUri, setVideoUri] = useState<string | null>(null);
@@ -74,8 +74,8 @@ export default function VideoCreationPage() {
         story: formState.story,
         artStyle: formState.art_style!
       };
-      const { script: generatedScript } = await generateVideoScript(input);
-      setScript(generatedScript);
+      const result = await generateVideoScript(input);
+      setScenes(result.scenes);
       nextStep();
     } catch (error) {
       handleError(error, 'generate script');
@@ -85,11 +85,14 @@ export default function VideoCreationPage() {
   };
 
   const handleRenderVideo = async () => {
-    if (!script) return;
+    if (scenes.length === 0) return;
     setIsLoading(true);
     setLoadingMessage('Rendering your video... This may take a minute.');
     try {
-      const { videoDataUri } = await textToVideo({ script });
+      // TODO: This will need to be updated to handle scenes correctly.
+      // For now, we'll just join the narrator text.
+      const scriptText = scenes.map(scene => scene.narrator).join('\n');
+      const { videoDataUri } = await textToVideo({ script: scriptText });
       setVideoUri(videoDataUri);
       nextStep();
     } catch (error) {
@@ -101,7 +104,7 @@ export default function VideoCreationPage() {
   
   const startOver = () => {
     setCurrentStep(0);
-    setScript('');
+    setScenes([]);
     setVideoUri(null);
   }
 
@@ -135,8 +138,8 @@ export default function VideoCreationPage() {
 
         {steps[currentStep].id === 'script' && (
           <FacelessVideoForm 
-            script={script}
-            setScript={setScript}
+            scenes={scenes}
+            setScenes={setScenes}
             isLoading={isLoading}
             onRenderVideo={handleRenderVideo}
             onPrevStep={prevStep}

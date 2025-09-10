@@ -64,6 +64,7 @@ const generateVideoScriptFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await generateVideoScriptPrompt(input);
+    console.log(output!)
     return output!;
   }
 );
