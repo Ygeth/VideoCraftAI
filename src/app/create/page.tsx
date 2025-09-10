@@ -3,19 +3,18 @@
 import { useState } from 'react';
 import {
   Wand2,
-  FileText,
   Sparkles,
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { generateVideoScript, GenerateVideoScriptInput } from '@/ai/flows/generate-video-script';
 import { textToVideo } from '@/ai/flows/text-to-video';
 import { Stepper } from '@/components/ui/stepper';
 import { FacelessConfigForm, FormValues } from '@/components/forms/faceless-config-form';
 import defaultArtStyle from '@/lib/art-style-default.json';
+import { FacelessVideoForm } from '@/components/forms/faceless-video-form';
 
 
 const steps = [
@@ -109,7 +108,7 @@ export default function VideoCreationPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <Stepper steps={steps} currentStep={currentStep} className="mb-12" />
 
         {steps[currentStep].id === 'prompt' && (
@@ -135,33 +134,13 @@ export default function VideoCreationPage() {
         )}
 
         {steps[currentStep].id === 'script' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline">
-                <FileText className="text-accent" />
-                Paso 2: Edita tu Guion
-              </CardTitle>
-              <CardDescription>Refina el guion generado por la IA. Tus cambios se reflejarán en el video final.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={script}
-                onChange={(e) => setScript(e.target.value)}
-                rows={10}
-                disabled={isLoading}
-                className="font-mono text-sm"
-              />
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="ghost" onClick={prevStep} disabled={isLoading}>
-                Atrás
-              </Button>
-              <Button onClick={handleRenderVideo} disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                Generar Video
-              </Button>
-            </CardFooter>
-          </Card>
+          <FacelessVideoForm 
+            script={script}
+            setScript={setScript}
+            isLoading={isLoading}
+            onRenderVideo={handleRenderVideo}
+            onPrevStep={prevStep}
+          />
         )}
 
         {steps[currentStep].id === 'video' && (
