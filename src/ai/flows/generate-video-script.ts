@@ -27,6 +27,7 @@ const SceneSchema = z.object({
     ),
   motionScene: z.string().describe('A description of the camera movement or animation for the scene, like "Slow zoom in", "Pan from left to right"'),
   imageUrl: z.string().optional().describe('The URL of the generated image for this scene.'),
+  audioUrl: z.string().optional().describe('The URL of the generated audio for this scene.'),
 });
 
 const GenerateVideoScriptOutputSchema = z.object({

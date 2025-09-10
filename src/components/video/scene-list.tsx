@@ -28,9 +28,10 @@ export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneLis
   };
 
   const handleAddScene = () => {
-    const newScene = {
+    const newScene: Scenes[0] = {
         narrator: 'New scene narration.',
-        'img-prompt': 'A new image prompt.'
+        'img-prompt': 'A new image prompt.',
+        motionScene: 'Static scene, no movement.',
     };
     setScenes([...scenes, newScene]);
   }
