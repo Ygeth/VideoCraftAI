@@ -1,6 +1,4 @@
 
-import axios from 'axios';
-
 export interface RedditStory {
     id: string;
     title: string;
@@ -8,27 +6,16 @@ export interface RedditStory {
 }
 
 export async function getStoriesFromTopics(url: string): Promise<RedditStory[]> {
-    console.log("getStoriesFromTopics with axios");
-    const response = await axios.get(url);
+    console.log("getStoriesFromTopics from proxy");
+    // We call our own API route which will then call Reddit.
+    // This is to avoid CORS issues.
+    const response = await fetch(`/api/reddit-stories?url=${encodeURIComponent(url)}`);
 
-    if (response.status !== 200) {
-        throw new Error(`Failed to fetch stories: ${response.statusText}`);
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch stories: ${response.statusText}`);
     }
 
-    const json = response.data;
-    const stories = json.data.children;
-
-    return stories
-        .map((story: any) => story.data)
-        .filter((data: any) => 
-            data.selftext &&
-            data.selftext.length > 1500 &&
-            !data.is_video &&
-            data.media === null
-        )
-        .map((data: any): RedditStory => ({
-            id: data.id,
-            title: data.title,
-            selftext: data.selftext,
-        }));
+    const stories = await response.json();
+    return stories;
 }
