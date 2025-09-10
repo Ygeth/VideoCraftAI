@@ -64,10 +64,10 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-4 flex flex-col gap-4">
+       <CardContent className="p-4 flex flex-row gap-4 items-start">
         <Dialog>
           <DialogTrigger asChild>
-            <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-full max-w-[200px] mx-auto">
+            <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-32 flex-shrink-0">
               {isGenerating ? (
                 <div className="flex flex-col items-center justify-center text-primary">
                   <Loader2 className="h-8 w-8 animate-spin" />
@@ -99,8 +99,8 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
           </DialogContent>
         </Dialog>
 
-        <div className="space-y-4 flex flex-col">
-            <div className="grid w-full gap-1.5">
+        <div className="space-y-2 flex flex-col flex-grow h-full">
+            <div className="grid w-full gap-1.5 flex-grow">
                 <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
                 <Textarea
                     id={`narrator-${sceneIndex}`}
@@ -110,7 +110,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                     className="h-24 text-sm"
                 />
             </div>
-            <div className="grid w-full gap-1.5">
+            <div className="grid w-full gap-1.5 flex-grow">
                 <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>
                 <Textarea
                     id={`img-prompt-${sceneIndex}`}
