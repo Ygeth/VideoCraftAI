@@ -25,6 +25,7 @@ const SceneSchema = z.object({
     .describe(
       'A detailed image generation prompt that captures the essence of this scene, following the specified art style.'
     ),
+  imageUrl: z.string().optional().describe('The URL of the generated image for this scene.'),
 });
 
 const GenerateVideoScriptOutputSchema = z.object({
