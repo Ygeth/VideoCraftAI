@@ -141,6 +141,7 @@ export default function VideoCreationPage() {
             scenes={scenes}
             setScenes={setScenes}
             artStyle={formState.art_style!}
+            aspectRatio="9:16"
             isLoading={isLoading}
             onRenderVideo={handleRenderVideo}
             onPrevStep={prevStep}

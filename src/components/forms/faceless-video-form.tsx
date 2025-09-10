@@ -14,6 +14,7 @@ interface FacelessVideoFormProps {
   scenes: GenerateVideoScriptOutput['scenes'];
   setScenes: (scenes: GenerateVideoScriptOutput['scenes']) => void;
   artStyle: string;
+  aspectRatio: string;
   isLoading: boolean;
   onRenderVideo: () => void;
   onPrevStep: () => void;
@@ -23,6 +24,7 @@ export function FacelessVideoForm({
   scenes,
   setScenes,
   artStyle,
+  aspectRatio,
   isLoading,
   onRenderVideo,
   onPrevStep,
@@ -39,7 +41,7 @@ export function FacelessVideoForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <SceneList scenes={scenes} setScenes={setScenes} artStyle={artStyle} />
+        <SceneList scenes={scenes} setScenes={setScenes} artStyle={artStyle} aspectRatio={aspectRatio} />
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="ghost" onClick={onPrevStep} disabled={isLoading}>

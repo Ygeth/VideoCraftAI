@@ -21,11 +21,12 @@ interface SceneCardProps {
   scene: Scene;
   sceneIndex: number;
   artStyle: string;
+  aspectRatio: string;
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
 }
 
-export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, onUpdate }: SceneCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -43,6 +44,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: S
       const { imageDataUri } = await generateImage({ 
         prompt: scene['img-prompt'],
         artStyle: artStyle,
+        aspectRatio: aspectRatio,
       });
       onUpdate(sceneIndex, { ...scene, imageUrl: imageDataUri });
     } catch (error) {
@@ -57,7 +59,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: S
     }
   };
 
-  const imageSrc = scene.imageUrl || `https://picsum.photos/seed/${sceneIndex + 1}/1280/720`;
+  const imageSrc = scene.imageUrl || `https://picsum.photos/seed/${sceneIndex + 1}/720/1280`;
 
   return (
     <Card className="overflow-hidden">
@@ -65,7 +67,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: S
         <div className="md:col-span-1">
           <Dialog>
             <DialogTrigger asChild>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative cursor-pointer">
+              <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer">
                 {isGenerating ? (
                   <div className="flex flex-col items-center justify-center text-primary">
                     <Loader2 className="h-8 w-8 animate-spin" />
@@ -85,8 +87,8 @@ export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: S
                 )}
               </div>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
-              <div className="aspect-video relative">
+            <DialogContent className="max-w-4xl h-[90vh]">
+              <div className="w-full h-full relative">
                 <Image
                   src={imageSrc}
                   alt={scene['img-prompt']}

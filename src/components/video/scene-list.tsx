@@ -11,9 +11,10 @@ interface SceneListProps {
   scenes: Scenes;
   setScenes: (scenes: Scenes) => void;
   artStyle: string;
+  aspectRatio: string;
 }
 
-export function SceneList({ scenes, setScenes, artStyle }: SceneListProps) {
+export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneListProps) {
   
   const handleDeleteScene = (index: number) => {
     const newScenes = scenes.filter((_, i) => i !== index);
@@ -42,6 +43,7 @@ export function SceneList({ scenes, setScenes, artStyle }: SceneListProps) {
           scene={scene}
           sceneIndex={index}
           artStyle={artStyle}
+          aspectRatio={aspectRatio}
           onDelete={handleDeleteScene}
           onUpdate={handleUpdateScene}
         />
