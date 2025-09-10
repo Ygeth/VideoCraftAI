@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { generateVideoScript, GenerateVideoScriptInput, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
-import { textToVideo } from '@/ai/flows/text-to-video';
+import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
 import { Stepper } from '@/components/ui/stepper';
 import { FacelessConfigForm, FormValues } from '@/components/forms/faceless-config-form';
 import defaultArtStyle from '@/lib/art-style-default.json';
@@ -85,14 +85,27 @@ export default function VideoCreationPage() {
   };
 
   const handleRenderVideo = async () => {
-    if (scenes.length === 0) return;
+    // This function will now generate video for the first scene as an example.
+    // A more complex implementation could generate a video for each scene and stitch them together.
+    const firstSceneWithImage = scenes.find(scene => scene.imageUrl);
+
+    if (!firstSceneWithImage) {
+      toast({
+        variant: 'destructive',
+        title: 'No image generated',
+        description: 'Please generate an image for at least one scene before rendering a video.',
+      });
+      return;
+    }
+
     setIsLoading(true);
     setLoadingMessage('Rendering your video... This may take a minute.');
     try {
-      // TODO: This will need to be updated to handle scenes correctly.
-      // For now, we'll just join the narrator text.
-      const scriptText = scenes.map(scene => scene.narrator).join('\n');
-      const { videoDataUri } = await textToVideo({ script: scriptText });
+      const { videoDataUri } = await generateVideoFromScene({ 
+        narration: firstSceneWithImage.narrator,
+        imageDataUri: firstSceneWithImage.imageUrl!,
+        aspectRatio: '9:16'
+      });
       setVideoUri(videoDataUri);
       nextStep();
     } catch (error) {

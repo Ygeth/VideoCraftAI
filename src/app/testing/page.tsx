@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
-import { textToVideo } from '@/ai/flows/text-to-video';
-import { Loader2, Beaker } from 'lucide-react';
+import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
+import { Loader2, Beaker, Video } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -19,7 +19,10 @@ import { Label } from '@/components/ui/label';
 import defaultArtStyle from '@/lib/art-style-default.json';
 import defaultScenes from '@/lib/default-scenes.json';
 import { SceneList } from '@/components/video/scene-list';
-import { generateImage } from '@/ai/flows/generate-image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+
+type Scene = GenerateVideoScriptOutput['scenes'][0];
 
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
@@ -29,8 +32,10 @@ export default function TestingPage() {
   const [previewOutput, setPreviewOutput] = useState(null);
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const [selectedSceneIndex, setSelectedSceneIndex] = useState<number>(0);
 
-  const handleTest = async (flow: 'script' | 'preview' | 'video') => {
+
+  const handleTest = async (flow: 'script' | 'preview' | 'video', data?: any) => {
     setIsLoading(flow);
     try {
       if (flow === 'script') {
@@ -43,8 +48,16 @@ export default function TestingPage() {
         setPreviewOutput(result as any);
         toast({ title: 'Preview Generated Successfully' });
       } else if (flow === 'video') {
-        const scriptText = scriptOutput ? scriptOutput.scenes.map(s => s.narrator).join('\n') : story;
-        const result = await textToVideo({ script: scriptText });
+        const scene = data as Scene;
+        if (!scene.imageUrl) {
+            toast({ variant: 'destructive', title: 'Image not generated for this scene.'});
+            return;
+        }
+        const result = await generateVideoFromScene({ 
+            narration: scene.narrator,
+            imageDataUri: scene.imageUrl,
+            aspectRatio: '9:16'
+        });
         setVideoUri(result.videoDataUri);
         toast({ title: 'Video Rendered Successfully' });
       }
@@ -136,7 +149,7 @@ export default function TestingPage() {
                         <div className="mt-4">
                             <h4 className="font-semibold mb-2">Scenes:</h4>
                             <div className="rounded-md border bg-muted p-4">
-                                <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle}/>
+                                <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle} aspectRatio='9:16' />
                             </div>
                         </div>
                     )}
@@ -144,10 +157,63 @@ export default function TestingPage() {
             </AccordionContent>
         </AccordionItem>
 
-
         <AccordionItem value="item-3" className="border rounded-lg">
+            <AccordionTrigger className="p-6 font-headline text-lg">
+                3. Test `generateVideoFromScene`
+            </AccordionTrigger>
+            <AccordionContent>
+                <CardContent className="space-y-4 pt-6">
+                    <p className="text-muted-foreground">
+                       First, generate an image for a scene in Step 2. Then, select a scene below and click "Render Video" to animate it.
+                    </p>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Select a scene to render</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <RadioGroup 
+                            value={String(selectedSceneIndex)} 
+                            onValueChange={(val) => setSelectedSceneIndex(Number(val))}
+                            className="gap-4"
+                          >
+                              {scriptOutput.scenes.map((scene, index) => (
+                                <div key={index} className="flex items-center space-x-2">
+                                  <RadioGroupItem value={String(index)} id={`scene-${index}`} />
+                                  <Label htmlFor={`scene-${index}`} className="flex-grow flex items-center gap-4 cursor-pointer">
+                                      {scene.imageUrl ? 
+                                        <img src={scene.imageUrl} alt={`Scene ${index+1}`} className="w-10 h-10 object-cover rounded-md" /> 
+                                        : <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+                                            <Video className="h-5 w-5" />
+                                          </div>
+                                      }
+                                      <span className="truncate">{scene.narrator}</span>
+                                  </Label>
+                                </div>
+                              ))}
+                          </RadioGroup>
+                      </CardContent>
+                    </Card>
+
+                    <Button className="mt-4" onClick={() => handleTest('video', scriptOutput.scenes[selectedSceneIndex])} disabled={!!isLoading}>
+                        {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Render Video
+                    </Button>
+                    
+                    {videoUri && (
+                        <div className="mt-4">
+                        <h4 className="font-semibold">Output:</h4>
+                        <video controls src={videoUri} className="mt-2 w-full max-w-lg rounded-md border bg-black" />
+                        </div>
+                    )}
+                </CardContent>
+            </AccordionContent>
+        </AccordionItem>
+
+
+        <AccordionItem value="item-4" className="border rounded-lg">
           <AccordionTrigger className="p-6 font-headline text-lg">
-            3. Test `previewWithAiSuggestions`
+            4. Test `previewWithAiSuggestions`
           </AccordionTrigger>
           <AccordionContent>
             <CardContent className="pt-6">
@@ -170,29 +236,6 @@ export default function TestingPage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="item-4" className="border rounded-lg">
-          <AccordionTrigger className="p-6 font-headline text-lg">
-            4. Test `textToVideo`
-          </AccordionTrigger>
-          <AccordionContent>
-            <CardContent className="pt-6">
-              <p className="text-muted-foreground">
-                Uses the script from step 1 (or the story as fallback) to render a video.
-                This may take up to a minute.
-              </p>
-              <Button className="mt-4" onClick={() => handleTest('video')} disabled={!!isLoading}>
-                {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Render Video
-              </Button>
-              {videoUri && (
-                <div className="mt-4">
-                  <h4 className="font-semibold">Output:</h4>
-                  <video controls src={videoUri} className="mt-2 w-full max-w-lg rounded-md border bg-black" />
-                </div>
-              )}
-            </CardContent>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
     </div>
   );

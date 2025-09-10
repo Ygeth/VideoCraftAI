@@ -21,7 +21,7 @@ class TTSService {
     this.synthesis.cancel();
 
     this.utterance = new SpeechSynthesisUtterance(text);
-    this.utterance.lang = 'es-ES'; // You can make this configurable
+    this.utterance.lang = 'en-EN'; // You can make this configurable
     
     this.utterance.onend = () => {
       onEnd();
