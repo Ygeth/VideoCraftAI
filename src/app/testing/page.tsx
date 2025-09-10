@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
-import { Loader2, Beaker, Video, TestTube, Bot } from 'lucide-react';
+import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -20,7 +21,8 @@ import defaultArtStyle from '@/lib/art-style-default.json';
 import defaultScenes from '@/lib/default-scenes.json';
 import { SceneList } from '@/components/video/scene-list';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { SidebarProvider, Sidebar, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
@@ -83,22 +85,44 @@ export default function TestingPage() {
   return (
     <SidebarProvider>
       <Sidebar>
+        <SidebarHeader className="p-4">
+            <Link href="/" className="flex items-center gap-2">
+                <Clapperboard className="h-7 w-7 text-primary" />
+                <span className="text-xl font-bold font-headline text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+                    VideoCraft AI
+                </span>
+            </Link>
+        </SidebarHeader>
         <SidebarContent className="p-2">
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton onClick={() => setActiveFlow('n8n')} isActive={activeFlow === 'n8n'}>
                         <Bot />
-                        Flujo n8n
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo n8n</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton onClick={() => setActiveFlow('veo')} isActive={activeFlow === 'veo'}>
                         <TestTube />
-                        Flujo Veo
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo Veo</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton>
+                        <Avatar className="size-7">
+                            <AvatarFallback>
+                                <User />
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="group-data-[collapsible=icon]:hidden">User</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="container mx-auto p-4 md:p-8">
