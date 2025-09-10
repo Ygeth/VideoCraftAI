@@ -1,4 +1,6 @@
 
+import axios from 'axios';
+
 export interface RedditStory {
     id: string;
     title: string;
@@ -6,13 +8,14 @@ export interface RedditStory {
 }
 
 export async function getStoriesFromTopics(url: string): Promise<RedditStory[]> {
-    const response = await fetch(url);
+    console.log("getStoriesFromTopics with axios");
+    const response = await axios.get(url);
 
-    if (!response.ok) {
+    if (response.status !== 200) {
         throw new Error(`Failed to fetch stories: ${response.statusText}`);
     }
 
-    const json = await response.json();
+    const json = response.data;
     const stories = json.data.children;
 
     return stories
