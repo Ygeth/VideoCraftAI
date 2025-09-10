@@ -13,6 +13,9 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="h-screen max-h-screen w-screen max-w-none top-0 translate-y-0 pt-16">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Create Video</DialogTitle>
+          </DialogHeader>
           <VideoCreationPage />
         </DialogContent>
       </Dialog>
