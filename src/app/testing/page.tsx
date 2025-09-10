@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { CardContent } from '@/components/ui/card';
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
@@ -18,6 +17,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import defaultArtStyle from '@/lib/art-style-default.json';
+import { SceneList } from '@/components/video/scene-list';
 
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
@@ -57,6 +57,11 @@ export default function TestingPage() {
       setIsLoading(null);
     }
   };
+
+  const handleSetScenes = (scenes: GenerateVideoScriptOutput['scenes']) => {
+    setScriptOutput({ scenes });
+  };
+
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -104,10 +109,10 @@ export default function TestingPage() {
               </Button>
               {scriptOutput && (
                 <div className="mt-4">
-                  <h4 className="font-semibold">Output:</h4>
-                  <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                    {JSON.stringify(scriptOutput, null, 2)}
-                  </pre>
+                  <h4 className="font-semibold mb-2">Output:</h4>
+                  <div className="rounded-md border bg-muted p-4">
+                    <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} />
+                  </div>
                 </div>
               )}
             </CardContent>
