@@ -1,0 +1,16 @@
+{
+    "scenes": [
+        {
+            "narrator": "The old detective sighed, the rain outside mirroring the storm in his mind. Another dead end.",
+            "img-prompt": "An old, tired detective sitting at a cluttered wooden desk in a dimly lit office. Rain streaks down the window behind him. The room is filled with cigarette smoke, casting a hazy glow."
+        },
+        {
+            "narrator": "He stared at the faded photograph, a ghost from a past he couldn't escape. The woman's smile was a question he'd never answered.",
+            "img-prompt": "A close-up shot of a man's hands holding a worn, black-and-white photograph of a smiling woman. The background is out of focus, suggesting a messy, forgotten room."
+        },
+        {
+            "narrator": "The neon sign of the bar across the street flickered, casting long, dancing shadows that played tricks on the eyes. Was that him? Or just another ghost?",
+            "img-prompt": "View from inside a dark room, looking out a window at a flickering neon sign of a bar. The street below is wet and empty. A lone, shadowy figure stands under a streetlight."
+        }
+    ]
+}

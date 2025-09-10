@@ -17,12 +17,14 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import defaultArtStyle from '@/lib/art-style-default.json';
+import defaultScenes from '@/lib/default-scenes.json';
 import { SceneList } from '@/components/video/scene-list';
+import { generateImage } from '@/ai/flows/generate-image';
 
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultArtStyle.art_style);
-  const [scriptOutput, setScriptOutput] = useState<GenerateVideoScriptOutput | null>(null);
+  const [scriptOutput, setScriptOutput] = useState<GenerateVideoScriptOutput>({ scenes: defaultScenes.scenes });
   const [videoUri, setVideoUri] = useState('');
   const [previewOutput, setPreviewOutput] = useState(null);
   const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -81,7 +83,7 @@ export default function TestingPage() {
             1. Test `generateVideoScript`
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <p className="text-muted-foreground">Input a story and an art style to generate a video script.</p>
               <div className="grid gap-2">
                 <Label htmlFor="story">Story</Label>
@@ -94,9 +96,9 @@ export default function TestingPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="art-style">Art Style</Label>
+                <Label htmlFor="art-style-script">Art Style</Label>
                 <Textarea
-                  id="art-style"
+                  id="art-style-script"
                   placeholder="Enter the art style"
                   value={artStyle}
                   onChange={(e) => setArtStyle(e.target.value)}
@@ -107,24 +109,48 @@ export default function TestingPage() {
                 {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Script
               </Button>
-              {scriptOutput && (
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Output:</h4>
-                  <div className="rounded-md border bg-muted p-4">
-                    <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} />
-                  </div>
-                </div>
-              )}
             </CardContent>
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="item-2" className="border rounded-lg">
+            <AccordionTrigger className="p-6 font-headline text-lg">
+                2. Test `generateImage`
+            </AccordionTrigger>
+            <AccordionContent>
+                <CardContent className="space-y-4 pt-6">
+                    <p className="text-muted-foreground">
+                        Modify the Art Style and then generate images for the scenes below. The scenes are pre-populated but you can also generate a new script in Step 1.
+                    </p>
+                     <div className="grid gap-2">
+                        <Label htmlFor="art-style-image">Art Style</Label>
+                        <Textarea
+                        id="art-style-image"
+                        placeholder="Enter the art style"
+                        value={artStyle}
+                        onChange={(e) => setArtStyle(e.target.value)}
+                        rows={8}
+                        />
+                    </div>
+                    {scriptOutput && (
+                        <div className="mt-4">
+                            <h4 className="font-semibold mb-2">Scenes:</h4>
+                            <div className="rounded-md border bg-muted p-4">
+                                <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle}/>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </AccordionContent>
+        </AccordionItem>
+
+
+        <AccordionItem value="item-3" className="border rounded-lg">
           <AccordionTrigger className="p-6 font-headline text-lg">
-            2. Test `previewWithAiSuggestions`
+            3. Test `previewWithAiSuggestions`
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent>
+            <CardContent className="pt-6">
               <p className="text-muted-foreground">
                 Uses the script from above (or the story as fallback) to generate suggestions.
               </p>
@@ -144,12 +170,12 @@ export default function TestingPage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="item-3" className="border rounded-lg">
+        <AccordionItem value="item-4" className="border rounded-lg">
           <AccordionTrigger className="p-6 font-headline text-lg">
-            3. Test `textToVideo`
+            4. Test `textToVideo`
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent>
+            <CardContent className="pt-6">
               <p className="text-muted-foreground">
                 Uses the script from step 1 (or the story as fallback) to render a video.
                 This may take up to a minute.
