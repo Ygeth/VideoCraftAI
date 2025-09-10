@@ -56,8 +56,11 @@ export function FacelessConfigForm({ onFormChange }: FacelessConfigFormProps) {
 
   const watchedValues = form.watch();
   useEffect(() => {
-    onFormChange(watchedValues);
-  }, [watchedValues, onFormChange]);
+    const subscription = form.watch((value) => {
+        onFormChange(value as FormValues);
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, onFormChange]);
 
 
   function onSubmit(data: FormValues) {

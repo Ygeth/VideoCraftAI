@@ -73,7 +73,7 @@ export default function VideoCreationPage() {
     try {
       const input: GenerateVideoScriptInput = {
         story: formState.story,
-        artStyle: formState.art_style
+        artStyle: formState.art_style!
       };
       const { script: generatedScript } = await generateVideoScript(input);
       setScript(generatedScript);
@@ -127,7 +127,7 @@ export default function VideoCreationPage() {
              <FacelessConfigForm onFormChange={setFormState} />
            </CardContent>
            <CardFooter className="flex justify-end">
-             <Button onClick={handleGenerateScript} disabled={isLoading}>
+             <Button onClick={handleGenerateScript} disabled={isLoading || !formState.story}>
                {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
                Generar Guion
              </Button>
