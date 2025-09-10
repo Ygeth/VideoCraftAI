@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CardContent, CardDescription, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateVideoScript } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { textToVideo } from '@/ai/flows/text-to-video';
@@ -66,12 +66,12 @@ export default function TestingPage() {
 
       <Accordion type="single" collapsible className="w-full space-y-4">
         <AccordionItem value="item-1" className="border rounded-lg">
-          <AccordionTrigger className="p-6 text-left">
-            <CardTitle>1. Test `generateVideoScript`</CardTitle>
+          <AccordionTrigger className="p-6 font-headline text-lg">
+            1. Test `generateVideoScript`
           </AccordionTrigger>
           <AccordionContent>
             <CardContent className="space-y-4">
-              <CardDescription>Input a prompt to generate a video script.</CardDescription>
+              <p className="text-muted-foreground">Input a prompt to generate a video script.</p>
               <Input
                 placeholder="Enter a prompt"
                 value={prompt}
@@ -94,15 +94,15 @@ export default function TestingPage() {
         </AccordionItem>
 
         <AccordionItem value="item-2" className="border rounded-lg">
-          <AccordionTrigger className="p-6 text-left">
-             <CardTitle>2. Test `previewWithAiSuggestions`</CardTitle>
+          <AccordionTrigger className="p-6 font-headline text-lg">
+            2. Test `previewWithAiSuggestions`
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className="space-y-4">
-              <CardDescription>
+            <CardContent>
+              <p className="text-muted-foreground">
                 Uses the script from above (or the prompt as fallback) to generate suggestions.
-              </CardDescription>
-              <Button onClick={() => handleTest('preview')} disabled={!!isLoading}>
+              </p>
+              <Button className="mt-4" onClick={() => handleTest('preview')} disabled={!!isLoading}>
                 {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Preview
               </Button>
@@ -119,16 +119,16 @@ export default function TestingPage() {
         </AccordionItem>
 
         <AccordionItem value="item-3" className="border rounded-lg">
-          <AccordionTrigger className="p-6 text-left">
-            <CardTitle>3. Test `textToVideo`</CardTitle>
+          <AccordionTrigger className="p-6 font-headline text-lg">
+            3. Test `textToVideo`
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent className="space-y-4">
-               <CardDescription>
+            <CardContent>
+              <p className="text-muted-foreground">
                 Uses the script from step 1 (or the prompt as fallback) to render a video.
                 This may take up to a minute.
-              </CardDescription>
-              <Button onClick={() => handleTest('video')} disabled={!!isLoading}>
+              </p>
+              <Button className="mt-4" onClick={() => handleTest('video')} disabled={!!isLoading}>
                 {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Render Video
               </Button>
