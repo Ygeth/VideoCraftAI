@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,7 +44,7 @@ export function FacelessConfigForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
         ...defaultConfig,
-        AI_AGENTS_NO_CODE_TOOLS_URL: process.env.AI_AGENTS_NO_CODE_TOOLS_URL || 'http://localhost:8000/',
+        AI_AGENTS_NO_CODE_TOOLS_URL: process.env.NEXT_PUBLIC_AI_AGENTS_NO_CODE_TOOLS_URL || 'http://localhost:8000/',
     },
   });
 
@@ -54,6 +55,40 @@ export function FacelessConfigForm() {
       title: 'Configuration Saved',
       description: 'Your settings have been updated successfully.',
     });
+  }
+
+  async function onCheckHealth() {
+    const url = form.getValues('AI_AGENTS_NO_CODE_TOOLS_URL');
+    if (!url) {
+        toast({
+            variant: 'destructive',
+            title: 'URL is empty',
+            description: 'Please enter a URL to check.',
+        });
+        return;
+    }
+    try {
+        const healthUrl = new URL('/health', url).toString();
+        const response = await fetch(healthUrl);
+        if (response.ok) {
+            toast({
+                title: 'Health Check Successful',
+                description: 'The service is running correctly.',
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Health Check Failed',
+                description: `The service returned status: ${response.status}`,
+            });
+        }
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Health Check Error',
+            description: 'Could not connect to the service. Please check the URL and if the service is running.',
+        });
+    }
   }
 
   return (
@@ -69,9 +104,12 @@ export function FacelessConfigForm() {
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>AI Agents No-Code Tools URL</FormLabel>
-                    <FormControl>
-                        <Input {...field} />
-                    </FormControl>
+                    <div className="flex items-center gap-2">
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <Button type="button" variant="outline" onClick={onCheckHealth}>Check</Button>
+                    </div>
                     <FormMessage />
                     </FormItem>
                 )}
