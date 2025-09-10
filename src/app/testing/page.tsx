@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { generateVideoScript } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { textToVideo } from '@/ai/flows/text-to-video';
@@ -15,9 +15,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import defaultArtStyle from '@/lib/art-style-default.json';
 
 export default function TestingPage() {
-  const [prompt, setPrompt] = useState('A short video about sustainable farming');
+  const [story, setStory] = useState('A short video about sustainable farming');
+  const [artStyle, setArtStyle] = useState(defaultArtStyle.art_style);
   const [script, setScript] = useState('');
   const [videoUri, setVideoUri] = useState('');
   const [previewOutput, setPreviewOutput] = useState(null);
@@ -28,15 +32,15 @@ export default function TestingPage() {
     setIsLoading(flow);
     try {
       if (flow === 'script') {
-        const result = await generateVideoScript({ prompt });
+        const result = await generateVideoScript({ story, artStyle });
         setScript(result.script);
         toast({ title: 'Script Generated Successfully' });
       } else if (flow === 'preview') {
-        const result = await previewWithAiSuggestions({ videoScript: script || prompt });
+        const result = await previewWithAiSuggestions({ videoScript: script || story });
         setPreviewOutput(result as any);
         toast({ title: 'Preview Generated Successfully' });
       } else if (flow === 'video') {
-        const result = await textToVideo({ script: script || prompt });
+        const result = await textToVideo({ script: script || story });
         setVideoUri(result.videoDataUri);
         toast({ title: 'Video Rendered Successfully' });
       }
@@ -64,19 +68,34 @@ export default function TestingPage() {
         </div>
       </div>
 
-      <Accordion type="single" collapsible className="w-full space-y-4">
+      <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
         <AccordionItem value="item-1" className="border rounded-lg">
           <AccordionTrigger className="p-6 font-headline text-lg">
             1. Test `generateVideoScript`
           </AccordionTrigger>
           <AccordionContent>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground">Input a prompt to generate a video script.</p>
-              <Input
-                placeholder="Enter a prompt"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
+              <p className="text-muted-foreground">Input a story and an art style to generate a video script.</p>
+              <div className="grid gap-2">
+                <Label htmlFor="story">Story</Label>
+                <Textarea
+                  id="story"
+                  placeholder="Enter a story"
+                  value={story}
+                  onChange={(e) => setStory(e.target.value)}
+                  rows={5}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="art-style">Art Style</Label>
+                <Textarea
+                  id="art-style"
+                  placeholder="Enter the art style"
+                  value={artStyle}
+                  onChange={(e) => setArtStyle(e.target.value)}
+                  rows={8}
+                />
+              </div>
               <Button onClick={() => handleTest('script')} disabled={!!isLoading}>
                 {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Script
@@ -100,7 +119,7 @@ export default function TestingPage() {
           <AccordionContent>
             <CardContent>
               <p className="text-muted-foreground">
-                Uses the script from above (or the prompt as fallback) to generate suggestions.
+                Uses the script from above (or the story as fallback) to generate suggestions.
               </p>
               <Button className="mt-4" onClick={() => handleTest('preview')} disabled={!!isLoading}>
                 {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -125,7 +144,7 @@ export default function TestingPage() {
           <AccordionContent>
             <CardContent>
               <p className="text-muted-foreground">
-                Uses the script from step 1 (or the prompt as fallback) to render a video.
+                Uses the script from step 1 (or the story as fallback) to render a video.
                 This may take up to a minute.
               </p>
               <Button className="mt-4" onClick={() => handleTest('video')} disabled={!!isLoading}>
