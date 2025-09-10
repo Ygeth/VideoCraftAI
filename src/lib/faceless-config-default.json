@@ -1,0 +1,8 @@
+{
+  "postiz_api_url": "https://api.postiz.com/public/v1",
+  "background_music_volume": 0.1,
+  "chatterbox_exaggeration": 0.6,
+  "chatterbox_cfg_weight": 0.5,
+  "chatterbox_temperature": 0.8,
+  "art_style": "Scene: Highly cinematic with a moody, noir atmosphere, inspired by detective and crime thriller films from the 1970s and 1980s. The setting can be anything, from an interior room to a suburban street, depicted in a tense, suspenseful moment. Emphasize the following details:\n\n- **Lighting:** Strong directional lighting with deep shadows; use cool blue and teal color grading with subtle hints of warm light from lamps or windows. The lighting should cast dramatic shadows across the scene.\n- **Mood:** Mysterious, somber, and slightly surreal ambiance, evoking a sense of unease or suspense.\n- **Subjects:** Human figures should appear contemplative, searching, tense, or whatever the scene calls for.\n- **Color Palette:** Dominant cold blues and teals contrasted by occasional soft warm light from lamps or daylight through curtains. The overall tone should be desaturated and muted.\n- **Cinematic Framing:** Framed like a movie still, with careful composition and leading lines, sometimes viewed through doorways or windows for added depth.\n- **Exterior Scenes:** Overcast skies, muted and overexposed daylight.\n\n**Style influences:** Denis Villeneuve, David Fincher, *Zodiac*, *Mindhunter*, *True Detective*, Gregory Crewdson, neo-noir photography."
+}

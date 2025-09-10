@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import {
   Wand2,
   FileText,
@@ -17,12 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { generateVideoScript } from '@/ai/flows/generate-video-script';
-import { previewWithAiSuggestions, PreviewWithAiSuggestionsOutput } from '@/ai/flows/preview-with-ai-suggestions';
 import { textToVideo } from '@/ai/flows/text-to-video';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Stepper } from '@/components/ui/stepper';
-
-type CreationStep = 'prompt' | 'script' | 'preview' | 'video';
+import { FacelessConfigForm } from '@/components/forms/faceless-config-form';
 
 const steps = [
   { id: 'prompt', name: 'Configuración' },
@@ -36,7 +32,6 @@ export default function VideoCreationPage() {
   const [script, setScript] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
-  const [preview, setPreview] = useState<PreviewWithAiSuggestionsOutput | null>(null);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -104,11 +99,9 @@ export default function VideoCreationPage() {
     setCurrentStep(0);
     setPrompt('');
     setScript('');
-    setPreview(null);
     setVideoUri(null);
   }
 
-  const previewImage = preview?.suggestedMedia || PlaceHolderImages[0]?.imageUrl || "https://picsum.photos/seed/ai-media/1280/720";
 
   return (
     <div className="container mx-auto px-4 py-8 h-full overflow-y-auto">
@@ -117,30 +110,37 @@ export default function VideoCreationPage() {
 
         {/* Step 1: Prompt */}
         {steps[currentStep].id === 'prompt' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline">
-                <Wand2 className="text-accent" />
-                Paso 1: Empieza con una idea
-              </CardTitle>
-              <CardDescription>Describe el video que quieres crear. Sé tan específico como quieras.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Ej: 'Un anuncio de 30 segundos para una nueva marca de café, centrado en el ritual matutino.'"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={4}
-                disabled={isLoading}
-              />
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleGenerateScript} disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                Generar Guion
-              </Button>
-            </CardFooter>
-          </Card>
+           <Card>
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2 font-headline">
+               <Wand2 className="text-accent" />
+               Paso 1: Configura y empieza con una idea
+             </CardTitle>
+             <CardDescription>
+               Ajusta los parámetros de la IA y luego describe el video que quieres crear.
+             </CardDescription>
+           </CardHeader>
+           <CardContent className="space-y-6">
+             <FacelessConfigForm />
+
+             <div className="space-y-2">
+                <h3 className="text-lg font-medium">Tu Idea</h3>
+                <Textarea
+                    placeholder="Ej: 'Un anuncio de 30 segundos para una nueva marca de café, centrado en el ritual matutino.'"
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    rows={4}
+                    disabled={isLoading}
+                />
+             </div>
+           </CardContent>
+           <CardFooter className="flex justify-end">
+             <Button onClick={handleGenerateScript} disabled={isLoading}>
+               {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
+               Generar Guion
+             </Button>
+           </CardFooter>
+         </Card>
         )}
 
         {/* Step 2: Script Editor */}
@@ -185,29 +185,21 @@ export default function VideoCreationPage() {
               <CardDescription>Descarga tu video o empieza de nuevo para crear uno nuevo.</CardDescription>
             </CardHeader>
             <CardContent>
-              {videoUri ? (
-                <video controls src={videoUri} className="w-full rounded-lg border bg-black">
-                  Tu navegador no soporta la etiqueta de video.
-                </video>
-              ) : (
+              {isLoading && !videoUri ? (
                  <div className="flex flex-col items-center justify-center bg-muted rounded-lg p-8 h-64">
                     <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                     <p className="text-lg font-semibold text-primary">{loadingMessage}</p>
                  </div>
-              )}
+              ) : videoUri ? (
+                <video controls src={videoUri} className="w-full rounded-lg border bg-black">
+                  Tu navegador no soporta la etiqueta de video.
+                </video>
+              ) : null}
             </CardContent>
             <CardFooter>
                 <Button onClick={startOver}>Empezar de nuevo</Button>
             </CardFooter>
           </Card>
-        )}
-        
-        {/* Full screen loader */}
-        {isLoading && !videoUri && steps[currentStep].id !== 'video' && (
-            <div className="fixed inset-0 bg-background/80 flex flex-col items-center justify-center z-50">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg font-semibold text-primary">{loadingMessage}</p>
-            </div>
         )}
       </div>
     </div>
