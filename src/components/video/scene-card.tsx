@@ -15,11 +15,12 @@ type Scene = GenerateVideoScriptOutput['scenes'][0];
 interface SceneCardProps {
   scene: Scene;
   sceneIndex: number;
+  artStyle: string;
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
 }
 
-export function SceneCard({ scene, sceneIndex, onDelete, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: SceneCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -34,7 +35,10 @@ export function SceneCard({ scene, sceneIndex, onDelete, onUpdate }: SceneCardPr
   const handleGenerateImage = async () => {
     setIsGenerating(true);
     try {
-      const { imageDataUri } = await generateImage({ prompt: scene['img-prompt'] });
+      const { imageDataUri } = await generateImage({ 
+        prompt: scene['img-prompt'],
+        artStyle: artStyle,
+      });
       onUpdate(sceneIndex, { ...scene, imageUrl: imageDataUri });
     } catch (error) {
       console.error('Failed to generate image:', error);

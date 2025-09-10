@@ -7,7 +7,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { generateVideoScript, GenerateVideoScriptInput, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { textToVideo } from '@/ai/flows/text-to-video';
@@ -140,6 +140,7 @@ export default function VideoCreationPage() {
           <FacelessVideoForm 
             scenes={scenes}
             setScenes={setScenes}
+            artStyle={formState.art_style!}
             isLoading={isLoading}
             onRenderVideo={handleRenderVideo}
             onPrevStep={prevStep}

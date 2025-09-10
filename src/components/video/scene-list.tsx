@@ -10,9 +10,10 @@ type Scenes = GenerateVideoScriptOutput['scenes'];
 interface SceneListProps {
   scenes: Scenes;
   setScenes: (scenes: Scenes) => void;
+  artStyle: string;
 }
 
-export function SceneList({ scenes, setScenes }: SceneListProps) {
+export function SceneList({ scenes, setScenes, artStyle }: SceneListProps) {
   
   const handleDeleteScene = (index: number) => {
     const newScenes = scenes.filter((_, i) => i !== index);
@@ -40,6 +41,7 @@ export function SceneList({ scenes, setScenes }: SceneListProps) {
           key={index}
           scene={scene}
           sceneIndex={index}
+          artStyle={artStyle}
           onDelete={handleDeleteScene}
           onUpdate={handleUpdateScene}
         />

@@ -13,6 +13,7 @@ import { SceneList } from '../video/scene-list';
 interface FacelessVideoFormProps {
   scenes: GenerateVideoScriptOutput['scenes'];
   setScenes: (scenes: GenerateVideoScriptOutput['scenes']) => void;
+  artStyle: string;
   isLoading: boolean;
   onRenderVideo: () => void;
   onPrevStep: () => void;
@@ -21,6 +22,7 @@ interface FacelessVideoFormProps {
 export function FacelessVideoForm({
   scenes,
   setScenes,
+  artStyle,
   isLoading,
   onRenderVideo,
   onPrevStep,
@@ -37,7 +39,7 @@ export function FacelessVideoForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <SceneList scenes={scenes} setScenes={setScenes} />
+        <SceneList scenes={scenes} setScenes={setScenes} artStyle={artStyle} />
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="ghost" onClick={onPrevStep} disabled={isLoading}>

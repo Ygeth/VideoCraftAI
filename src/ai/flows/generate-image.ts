@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateImageInputSchema = z.object({
   prompt: z.string().describe('The text prompt to generate an image from.'),
+  artStyle: z.string().describe('The art style to apply to the image.'),
 });
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 
@@ -32,9 +33,12 @@ const generateImageFlow = ai.defineFlow(
     outputSchema: GenerateImageOutputSchema,
   },
   async input => {
+    // Combine the art style and the specific scene prompt.
+    const finalPrompt = `Art Style: ${input.artStyle}\n\nPrompt: ${input.prompt}`;
+
     const {media} = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: input.prompt,
+      prompt: finalPrompt,
     });
 
     const imageDataUri = media.url;
