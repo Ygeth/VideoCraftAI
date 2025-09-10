@@ -62,7 +62,7 @@ const generateVideoFromSceneFlow = ai.defineFlow(
         {media: { contentType: mimeType, url: `data:${mimeType};base64,${base64Data}` }},
       ],
       config: {
-        aspectRatio: input.aspectRatio || '9:16',
+        personGeneration: 'allow_adult',
       },
     });
 
