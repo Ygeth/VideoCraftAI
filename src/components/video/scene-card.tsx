@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
+import { generateNarration } from '@/ai/flows/generate-narration';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -28,7 +29,8 @@ interface SceneCardProps {
 }
 
 export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, onUpdate }: SceneCardProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingNarration, setIsGeneratingNarration] = useState(false);
   const { toast } = useToast();
 
   const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -40,7 +42,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
   };
 
   const handleGenerateImage = async () => {
-    setIsGenerating(true);
+    setIsGeneratingImage(true);
     try {
       const { imageDataUri } = await generateImage({ 
         prompt: scene['img-prompt'],
@@ -56,9 +58,30 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
         description: 'Could not generate the image for this scene. Please try again.',
       });
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingImage(false);
     }
   };
+
+  const handleGenerateNarration = async () => {
+    setIsGeneratingNarration(true);
+    try {
+      const { narration } = await generateNarration({
+        imgPrompt: scene['img-prompt'],
+        artStyle: artStyle,
+      });
+      onUpdate(sceneIndex, { ...scene, narrator: narration });
+    } catch (error) {
+      console.error('Failed to generate narration:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Narration generation failed',
+        description: 'Could not generate the narration for this scene. Please try again.',
+      });
+    } finally {
+      setIsGeneratingNarration(false);
+    }
+  };
+
 
   const imageSrc = scene.imageUrl || `https://picsum.photos/seed/${sceneIndex + 1}/720/1280`;
 
@@ -68,7 +91,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
         <Dialog>
           <DialogTrigger asChild>
             <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-32 flex-shrink-0">
-              {isGenerating ? (
+              {isGeneratingImage ? (
                 <div className="flex flex-col items-center justify-center text-primary">
                   <Loader2 className="h-8 w-8 animate-spin" />
                   <p className="mt-2 text-sm">Generating...</p>
@@ -101,7 +124,17 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
 
         <div className="space-y-2 flex flex-col flex-grow h-full">
             <div className="grid w-full gap-1.5 flex-grow">
-                <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
+                  <Button onClick={handleGenerateNarration} disabled={isGeneratingNarration} variant="ghost" size="sm" className="text-xs">
+                    {isGeneratingNarration ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-1 h-3 w-3" />
+                    )}
+                    Generate
+                  </Button>
+                </div>
                 <Textarea
                     id={`narrator-${sceneIndex}`}
                     value={scene.narrator}
@@ -121,8 +154,8 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                 />
             </div>
           <div className="flex items-center justify-between mt-auto pt-2">
-              <Button onClick={handleGenerateImage} disabled={isGenerating} variant="outline" size="sm">
-                {isGenerating ? (
+              <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
+                {isGeneratingImage ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <Sparkles />
