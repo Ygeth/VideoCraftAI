@@ -2,6 +2,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  allowedDevOrigins: ['9000-firebase-studio-1757487297118.*', '*.cloudworkstations.dev', '9000-firebase-studio-1757487297118.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev'],
+
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -32,7 +34,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '4.5mb',
+      bodySizeLimit: '10mb',
       // Extend the timeout for server actions to 5 minutes for video generation
       serverActionsTimeout: 300,
     }

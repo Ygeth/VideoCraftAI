@@ -63,6 +63,7 @@ const generateVideoFromSceneFlow = ai.defineFlow(
       ],
       config: {
         personGeneration: 'allow_adult',
+        //personGeneration: 'allow_all',
       },
     });
 
