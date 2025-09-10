@@ -67,7 +67,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
         <div className="md:col-span-1">
           <Dialog>
             <DialogTrigger asChild>
-              <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer">
+              <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-full max-w-[200px] mx-auto">
                 {isGenerating ? (
                   <div className="flex flex-col items-center justify-center text-primary">
                     <Loader2 className="h-8 w-8 animate-spin" />
@@ -99,21 +99,20 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
             </DialogContent>
           </Dialog>
         </div>
-        <div className="md:col-span-2 space-y-3">
+        <div className="md:col-span-2 space-y-3 flex flex-col">
           <Textarea
             value={scene.narrator}
             onChange={handleNarrationChange}
             placeholder="Scene narration..."
-            className="h-24 text-sm"
+            className="h-24 text-sm flex-grow"
           />
           <Textarea
             value={scene['img-prompt']}
             onChange={handlePromptChange}
             placeholder="Image generation prompt..."
-            className="h-24 text-sm font-mono"
+            className="h-24 text-sm font-mono flex-grow"
           />
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto pt-2">
               <Button onClick={handleGenerateImage} disabled={isGenerating} variant="outline" size="sm">
                 {isGenerating ? (
                   <Loader2 className="animate-spin" />
@@ -126,7 +125,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-          </div>
         </div>
       </CardContent>
     </Card>
