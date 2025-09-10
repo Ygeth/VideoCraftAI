@@ -2,23 +2,15 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import VideoCreationPage from '@/app/create/page';
 import Image from 'next/image';
+import { FacelessVideoModal } from '@/components/modal/faceless-video-modal';
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="h-screen max-h-screen w-screen max-w-none top-0 translate-y-0 pt-16">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Create Video</DialogTitle>
-          </DialogHeader>
-          <VideoCreationPage />
-        </DialogContent>
-      </Dialog>
+      <FacelessVideoModal open={isModalOpen} onOpenChange={setIsModalOpen} />
       
       <div className="mb-8">
         <Image 
