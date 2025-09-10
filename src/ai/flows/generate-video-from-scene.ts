@@ -13,7 +13,7 @@ import {z} from 'genkit';
 import {MediaPart} from 'genkit';
 
 const GenerateVideoFromSceneInputSchema = z.object({
-  motionScene: z.string().describe('How the scene must move.'),
+  motionScene: z.string().describe('How the scene must narration for the scene.'),
   narration: z.string().describe('The narration for the scene.'),
   imageDataUri: z
     .string()
@@ -54,18 +54,33 @@ const generateVideoFromSceneFlow = ai.defineFlow(
     const mimeType = match[1];
     const base64Data = match[2];
 
+    // Veo3
     let {operation} = await ai.generate({
       model: 'googleai/veo-3.0-generate-preview',
       prompt: [
-        {text: `Animate this image based on the following scene motion: ${input.motionScene}.
+        {text: `Animate this image based on the following scene: ${input.motionScene}. The narration is: ${input.narration}.`},
+        {media: { contentType: mimeType, url: `data:${mimeType};base64,${base64Data}` }},
+      ],
+      config: {
+        aspectRatio: input.aspectRatio || '9:16',
+      },
+    });
+
+    // Veo2 Example (commented out)
+    /*
+    let {operation} = await ai.generate({
+      model: 'googleai/veo-2.0-generate-001',
+      prompt: [
+        {text: `Animate this image based on the following scene: ${input.motionScene}.
           The narration is: ${input.narration}.`},
-        {media: { contentType: mimeType, url: `data:;base64,${base64Data}` }},
+        {media: { contentType: mimeType, url: `data:${mimeType};base64,${base64Data}` }},
       ],
       config: {
         durationSeconds: 5,
         aspectRatio: input.aspectRatio || '9:16',
       },
     });
+    */
 
     if (!operation) {
       throw new Error('Expected the model to return an operation');
