@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Trash2, Loader2, Sparkles } from 'lucide-react';
+import { Trash2, Loader2, Sparkles, Volume2 } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
-import { generateNarration } from '@/ai/flows/generate-narration';
+import { generateNarrationAudio } from '@/ai/flows/generate-narration';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -30,7 +30,7 @@ interface SceneCardProps {
 
 export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, onUpdate }: SceneCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [isGeneratingNarration, setIsGeneratingNarration] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
 
   const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -62,23 +62,28 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
     }
   };
 
-  const handleGenerateNarration = async () => {
-    setIsGeneratingNarration(true);
+  const handleGenerateAudio = async () => {
+    if (!scene.narrator) {
+        toast({
+            variant: 'destructive',
+            title: 'Narration is empty',
+            description: 'Please provide narration text before generating audio.',
+        });
+        return;
+    }
+    setIsGeneratingAudio(true);
     try {
-      const { narration } = await generateNarration({
-        imgPrompt: scene['img-prompt'],
-        artStyle: artStyle,
-      });
-      onUpdate(sceneIndex, { ...scene, narrator: narration });
+      const { audioDataUri } = await generateNarrationAudio({ text: scene.narrator });
+      onUpdate(sceneIndex, { ...scene, audioUrl: audioDataUri });
     } catch (error) {
-      console.error('Failed to generate narration:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Narration generation failed',
-        description: 'Could not generate the narration for this scene. Please try again.',
-      });
+        console.error('Failed to generate audio:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Audio generation failed',
+          description: 'Could not generate audio for this scene. Please try again.',
+        });
     } finally {
-      setIsGeneratingNarration(false);
+        setIsGeneratingAudio(false);
     }
   };
 
@@ -126,13 +131,13 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
             <div className="grid w-full gap-1.5 flex-grow">
                 <div className="flex justify-between items-center">
                   <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
-                  <Button onClick={handleGenerateNarration} disabled={isGeneratingNarration} variant="ghost" size="sm" className="text-xs">
-                    {isGeneratingNarration ? (
+                  <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="ghost" size="sm" className="text-xs">
+                    {isGeneratingAudio ? (
                       <Loader2 className="animate-spin" />
                     ) : (
-                      <Sparkles className="mr-1 h-3 w-3" />
+                      <Volume2 className="mr-1 h-3 w-3" />
                     )}
-                    Generate
+                    Generate Audio
                   </Button>
                 </div>
                 <Textarea
@@ -142,6 +147,11 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                     placeholder="Scene narration..."
                     className="h-24 text-sm"
                 />
+                {scene.audioUrl && (
+                    <audio controls src={scene.audioUrl} className="w-full h-8 mt-1">
+                        Your browser does not support the audio element.
+                    </audio>
+                )}
             </div>
             <div className="grid w-full gap-1.5 flex-grow">
                 <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>

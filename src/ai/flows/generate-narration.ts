@@ -1,58 +1,92 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for generating narration for a video scene.
+ * @fileOverview This file defines a Genkit flow for generating narration audio from text.
  *
- * - generateNarration - A function that handles the narration generation process.
- * - GenerateNarrationInput - The input type for the generateNarration function.
- * - GenerateNarrationOutput - The return type for the generateNarration function.
+ * - generateNarrationAudio - A function that handles the text-to-speech conversion.
+ * - GenerateNarrationAudioInput - The input type for the generateNarrationAudio function.
+ * - GenerateNarrationAudioOutput - The return type for the generateNarrationAudio function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import wav from 'wav';
 
-const GenerateNarrationInputSchema = z.object({
-  imgPrompt: z.string().describe('The image prompt for the scene, which will be used as context for the narration.'),
-  artStyle: z.string().optional().describe('The general art style of the video for tonal consistency.'),
+const GenerateNarrationAudioInputSchema = z.object({
+  text: z.string().describe('The text to convert to speech.'),
 });
-export type GenerateNarrationInput = z.infer<typeof GenerateNarrationInputSchema>;
+export type GenerateNarrationAudioInput = z.infer<typeof GenerateNarrationAudioInputSchema>;
 
-const GenerateNarrationOutputSchema = z.object({
-  narration: z.string().describe('The generated narration text for the scene.'),
+const GenerateNarrationAudioOutputSchema = z.object({
+  audioDataUri: z.string().describe('The generated audio as a data URI.'),
 });
-export type GenerateNarrationOutput = z.infer<typeof GenerateNarrationOutputSchema>;
+export type GenerateNarrationAudioOutput = z.infer<typeof GenerateNarrationAudioOutputSchema>;
 
-export async function generateNarration(input: GenerateNarrationInput): Promise<GenerateNarrationOutput> {
-  return generateNarrationFlow(input);
+export async function generateNarrationAudio(input: GenerateNarrationAudioInput): Promise<GenerateNarrationAudioOutput> {
+  return generateNarrationAudioFlow(input);
 }
 
-const generateNarrationPrompt = ai.definePrompt({
-  name: 'generateNarrationPrompt',
-  input: {schema: GenerateNarrationInputSchema},
-  output: {schema: GenerateNarrationOutputSchema},
-  prompt: `You are a script writer for short, viral videos. Your task is to write a single, compelling sentence of narration for a video scene.
-The narration should be mysterious, engaging, and concise.
+async function toWav(
+  pcmData: Buffer,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const writer = new wav.Writer({
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
 
-Use the following image prompt as the main inspiration for the narration. The art style is provided for tonal consistency.
+    const bufs: any[] = [];
+    writer.on('error', reject);
+    writer.on('data', function (d) {
+      bufs.push(d);
+    });
+    writer.on('end', function () {
+      resolve(Buffer.concat(bufs).toString('base64'));
+    });
 
-Art Style:
-{{{artStyle}}}
-
-Image Prompt:
-{{{imgPrompt}}}
-
-Generate a single sentence of narration.`,
-});
+    writer.write(pcmData);
+    writer.end();
+  });
+}
 
 
-const generateNarrationFlow = ai.defineFlow(
+const generateNarrationAudioFlow = ai.defineFlow(
   {
-    name: 'generateNarrationFlow',
-    inputSchema: GenerateNarrationInputSchema,
-    outputSchema: GenerateNarrationOutputSchema,
+    name: 'generateNarrationAudioFlow',
+    inputSchema: GenerateNarrationAudioInputSchema,
+    outputSchema: GenerateNarrationAudioOutputSchema,
   },
-  async input => {
-    const {output} = await generateNarrationPrompt(input);
-    return output!;
+  async ({text}) => {
+    const { media } = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Algenib' },
+            },
+          },
+        },
+        prompt: text,
+      });
+
+      if (!media) {
+        throw new Error('no media returned');
+      }
+
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+      
+      const wavBase64 = await toWav(audioBuffer);
+      
+      return {
+        audioDataUri: 'data:audio/wav;base64,' + wavBase64,
+      };
   }
 );
