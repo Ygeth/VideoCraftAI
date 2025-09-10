@@ -13,12 +13,16 @@ export async function GET(request: NextRequest) {
     const response = await fetch(redditUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
       },
     });
 
     if (!response.ok) {
+        console.error("Reddit API request failed with status:", response.status, response.statusText);
         const errorText = await response.text();
-        console.error('Reddit API Error:', errorText);
+        console.error('Reddit API Error Body:', errorText);
         return NextResponse.json({ message: `Failed to fetch from Reddit: ${response.statusText}` }, { status: response.status });
     }
 
