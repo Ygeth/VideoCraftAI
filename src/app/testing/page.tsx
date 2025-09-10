@@ -3,13 +3,18 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { generateVideoScript } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { textToVideo } from '@/ai/flows/text-to-video';
 import { Loader2, Beaker } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 export default function TestingPage() {
   const [prompt, setPrompt] = useState('A short video about sustainable farming');
@@ -59,81 +64,90 @@ export default function TestingPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Test Generate Script */}
-        <Card>
-          <CardHeader>
-            <CardTitle>1. Test `generateVideoScript`</CardTitle>
-            <CardDescription>Input a prompt to generate a video script.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              placeholder="Enter a prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
-            <Button onClick={() => handleTest('script')} disabled={!!isLoading}>
-              {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generate Script
-            </Button>
-            {script && (
-              <div className="mt-4">
-                <h4 className="font-semibold">Output:</h4>
-                <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                  {script}
-                </pre>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <Accordion type="single" collapsible className="w-full space-y-4">
+        <AccordionItem value="item-1" className="border rounded-lg">
+          <AccordionTrigger className="p-6">
+            <div className="text-left">
+              <CardTitle>1. Test `generateVideoScript`</CardTitle>
+              <CardDescription className="pt-2">Input a prompt to generate a video script.</CardDescription>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <CardContent className="space-y-4">
+              <Input
+                placeholder="Enter a prompt"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+              <Button onClick={() => handleTest('script')} disabled={!!isLoading}>
+                {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Generate Script
+              </Button>
+              {script && (
+                <div className="mt-4">
+                  <h4 className="font-semibold">Output:</h4>
+                  <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+                    {script}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </AccordionContent>
+        </AccordionItem>
 
-        {/* Test Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>2. Test `previewWithAiSuggestions`</CardTitle>
-            <CardDescription>
-              Uses the script from above (or the prompt as fallback) to generate suggestions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => handleTest('preview')} disabled={!!isLoading}>
-              {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generate Preview
-            </Button>
-            {previewOutput && (
-              <div className="mt-4">
-                <h4 className="font-semibold">Output:</h4>
-                <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                  {JSON.stringify(previewOutput, null, 2)}
-                </pre>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <AccordionItem value="item-2" className="border rounded-lg">
+          <AccordionTrigger className="p-6">
+            <div className="text-left">
+              <CardTitle>2. Test `previewWithAiSuggestions`</CardTitle>
+              <CardDescription className="pt-2">
+                Uses the script from above (or the prompt as fallback) to generate suggestions.
+              </CardDescription>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <CardContent>
+              <Button onClick={() => handleTest('preview')} disabled={!!isLoading}>
+                {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Generate Preview
+              </Button>
+              {previewOutput && (
+                <div className="mt-4">
+                  <h4 className="font-semibold">Output:</h4>
+                  <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+                    {JSON.stringify(previewOutput, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </AccordionContent>
+        </AccordionItem>
 
-        {/* Test Text to Video */}
-        <Card>
-          <CardHeader>
-            <CardTitle>3. Test `textToVideo`</CardTitle>
-            <CardDescription>
-              Uses the script from step 1 (or the prompt as fallback) to render a video.
-              This may take up to a minute.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => handleTest('video')} disabled={!!isLoading}>
-              {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Render Video
-            </Button>
-            {videoUri && (
-              <div className="mt-4">
-                <h4 className="font-semibold">Output:</h4>
-                <video controls src={videoUri} className="mt-2 w-full max-w-lg rounded-md border bg-black" />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <AccordionItem value="item-3" className="border rounded-lg">
+          <AccordionTrigger className="p-6">
+            <div className="text-left">
+              <CardTitle>3. Test `textToVideo`</CardTitle>
+              <CardDescription className="pt-2">
+                Uses the script from step 1 (or the prompt as fallback) to render a video.
+                This may take up to a minute.
+              </CardDescription>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <CardContent>
+              <Button onClick={() => handleTest('video')} disabled={!!isLoading}>
+                {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Render Video
+              </Button>
+              {videoUri && (
+                <div className="mt-4">
+                  <h4 className="font-semibold">Output:</h4>
+                  <video controls src={videoUri} className="mt-2 w-full max-w-lg rounded-md border bg-black" />
+                </div>
+              )}
+            </CardContent>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
