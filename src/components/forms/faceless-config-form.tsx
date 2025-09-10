@@ -27,7 +27,9 @@ import {
     AccordionItem,
     AccordionTrigger,
   } from '@/components/ui/accordion'
-import { Upload } from 'lucide-react';
+import { Upload, Copy, Loader2, BookOpen } from 'lucide-react';
+import { getStoriesFromTopics, RedditStory } from '@/services/reddit-service';
+import { ScrollArea } from '../ui/scroll-area';
 
 const formSchema = z.object({
   postiz_api_url: z.string().url(),
@@ -39,6 +41,7 @@ const formSchema = z.object({
   AI_AGENTS_NO_CODE_TOOLS_URL: z.string().url(),
   background_music_id: z.string().optional(),
   sample_audio_id: z.string().optional(),
+  reddit_url: z.string().url(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -47,6 +50,8 @@ export function FacelessConfigForm() {
   const [backgroundMusicFile, setBackgroundMusicFile] = useState<File | null>(null);
   const [sampleAudioFile, setSampleAudioFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState<string | null>(null);
+  const [stories, setStories] = useState<RedditStory[]>([]);
+  const [isFetchingStories, setIsFetchingStories] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -150,12 +155,90 @@ export function FacelessConfigForm() {
     }
   };
 
+  const handleFetchStories = async () => {
+    const url = form.getValues('reddit_url');
+    setIsFetchingStories(true);
+    try {
+        const fetchedStories = await getStoriesFromTopics(url);
+        setStories(fetchedStories);
+        if (fetchedStories.length === 0) {
+            toast({
+                title: 'No stories found',
+                description: 'No stories matched the criteria. Try a different subreddit.',
+            });
+        }
+    } catch (error: any) {
+        console.error(error)
+        toast({
+            variant: 'destructive',
+            title: 'Failed to fetch stories',
+            description: error.message || 'An unknown error occurred.',
+        });
+    } finally {
+        setIsFetchingStories(false);
+    }
+  };
+
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+        title: 'Copied to clipboard!',
+    });
+  };
+
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
       <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
-        <AccordionItem value="item-1">
+      <AccordionItem value="item-1">
+          <AccordionTrigger>Inspiration</AccordionTrigger>
+          <AccordionContent className="space-y-6 pt-6">
+                <FormField
+                control={form.control}
+                name="reddit_url"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Reddit URL</FormLabel>
+                    <div className="flex items-center gap-2">
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <Button type="button" variant="outline" onClick={handleFetchStories} disabled={isFetchingStories}>
+                            {isFetchingStories ? <Loader2 className="animate-spin" /> : <BookOpen />}
+                            Get Stories
+                        </Button>
+                    </div>
+                    <FormDescription>
+                        Enter a Reddit URL (.json) to fetch stories for inspiration.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                {stories.length > 0 && (
+                    <ScrollArea className="h-72 w-full rounded-md border p-4">
+                         <div className="space-y-4">
+                            {stories.map((story) => (
+                                <div key={story.id} className="p-4 border rounded-lg relative">
+                                    <h4 className="font-bold mb-2 pr-10">{story.title}</h4>
+                                    <p className="text-sm text-muted-foreground line-clamp-3">{story.selftext}</p>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="absolute top-2 right-2 h-8 w-8"
+                                        onClick={() => handleCopyToClipboard(story.selftext)}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                )}
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
           <AccordionTrigger>Video Configuration</AccordionTrigger>
           <AccordionContent className="space-y-8 pt-6">
             <FormItem>
@@ -175,7 +258,7 @@ export function FacelessConfigForm() {
                   onClick={() => handleFileUpload(backgroundMusicFile, 'background_music_id', 'audio')}
                   disabled={!backgroundMusicFile || !!isUploading}
                 >
-                  <Upload className="h-4 w-4" />
+                  {isUploading === 'background_music_id' ? <Loader2 className="animate-spin" /> : <Upload className="h-4 w-4" />}
                 </Button>
               </div>
               <FormDescription>
@@ -200,7 +283,7 @@ export function FacelessConfigForm() {
                   onClick={() => handleFileUpload(sampleAudioFile, 'sample_audio_id', 'audio')}
                   disabled={!sampleAudioFile || !!isUploading}
                 >
-                  <Upload className="h-4 w-4" />
+                   {isUploading === 'sample_audio_id' ? <Loader2 className="animate-spin" /> : <Upload className="h-4 w-4" />}
                 </Button>
               </div>
                <FormDescription>
@@ -210,7 +293,7 @@ export function FacelessConfigForm() {
 
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-2">
+        <AccordionItem value="item-3">
             <AccordionTrigger>Advanced Configuration</AccordionTrigger>
             <AccordionContent className="space-y-8 pt-6">
                 <FormField
