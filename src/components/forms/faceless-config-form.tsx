@@ -33,6 +33,7 @@ const formSchema = z.object({
   chatterbox_cfg_weight: z.number().min(0).max(1),
   chatterbox_temperature: z.number().min(0).max(1),
   art_style: z.string().min(10),
+  AI_AGENTS_NO_CODE_TOOLS_URL: z.string().url(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,6 +43,7 @@ export function FacelessConfigForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
         ...defaultConfig,
+        AI_AGENTS_NO_CODE_TOOLS_URL: process.env.AI_AGENTS_NO_CODE_TOOLS_URL || 'http://localhost:8000/',
     },
   });
 
@@ -61,6 +63,20 @@ export function FacelessConfigForm() {
         <AccordionItem value="item-1">
             <AccordionTrigger>Advanced Configuration</AccordionTrigger>
             <AccordionContent className="space-y-8 pt-6">
+                <FormField
+                control={form.control}
+                name="AI_AGENTS_NO_CODE_TOOLS_URL"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>AI Agents No-Code Tools URL</FormLabel>
+                    <FormControl>
+                        <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+
                 <FormField
                 control={form.control}
                 name="postiz_api_url"
