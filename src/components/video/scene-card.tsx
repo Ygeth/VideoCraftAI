@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from '../ui/label';
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
 
@@ -63,55 +64,62 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-1">
-          <Dialog>
-            <DialogTrigger asChild>
-              <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-full max-w-[200px] mx-auto">
-                {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center text-primary">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                    <p className="mt-2 text-sm">Generating...</p>
-                  </div>
-                ) : (
-                  <>
-                    <Image
-                      src={imageSrc}
-                      alt={scene['img-prompt']}
-                      fill
-                      className="object-cover rounded-lg"
-                      data-ai-hint="cinematic"
-                    />
-                    <div className="absolute inset-0 bg-black/20 hover:bg-black/10 transition-colors" />
-                  </>
-                )}
-              </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl h-[90vh]">
-              <div className="w-full h-full relative">
-                <Image
-                  src={imageSrc}
-                  alt={scene['img-prompt']}
-                  fill
-                  className="object-contain rounded-lg"
+      <CardContent className="p-4 flex flex-col gap-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-full max-w-[200px] mx-auto">
+              {isGenerating ? (
+                <div className="flex flex-col items-center justify-center text-primary">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <p className="mt-2 text-sm">Generating...</p>
+                </div>
+              ) : (
+                <>
+                  <Image
+                    src={imageSrc}
+                    alt={scene['img-prompt']}
+                    fill
+                    className="object-cover rounded-lg"
+                    data-ai-hint="cinematic"
+                  />
+                  <div className="absolute inset-0 bg-black/20 hover:bg-black/10 transition-colors" />
+                </>
+              )}
+            </div>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl h-[90vh]">
+            <div className="w-full h-full relative">
+              <Image
+                src={imageSrc}
+                alt={scene['img-prompt']}
+                fill
+                className="object-contain rounded-lg"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div className="space-y-4 flex flex-col">
+            <div className="grid w-full gap-1.5">
+                <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
+                <Textarea
+                    id={`narrator-${sceneIndex}`}
+                    value={scene.narrator}
+                    onChange={handleNarrationChange}
+                    placeholder="Scene narration..."
+                    className="h-24 text-sm"
                 />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="md:col-span-2 space-y-3 flex flex-col">
-          <Textarea
-            value={scene.narrator}
-            onChange={handleNarrationChange}
-            placeholder="Scene narration..."
-            className="h-24 text-sm flex-grow"
-          />
-          <Textarea
-            value={scene['img-prompt']}
-            onChange={handlePromptChange}
-            placeholder="Image generation prompt..."
-            className="h-24 text-sm font-mono flex-grow"
-          />
+            </div>
+            <div className="grid w-full gap-1.5">
+                <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>
+                <Textarea
+                    id={`img-prompt-${sceneIndex}`}
+                    value={scene['img-prompt']}
+                    onChange={handlePromptChange}
+                    placeholder="Image generation prompt..."
+                    className="h-24 text-sm font-mono"
+                />
+            </div>
           <div className="flex items-center justify-between mt-auto pt-2">
               <Button onClick={handleGenerateImage} disabled={isGenerating} variant="outline" size="sm">
                 {isGenerating ? (
