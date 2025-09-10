@@ -265,27 +265,33 @@ export default function TestingPage() {
 
                 {/* n8n Flow Test */}
                 {activeFlow === 'n8n' && (
-                    <AccordionItem value="item-4" className="border rounded-lg">
+                    <AccordionItem value="item-2" className="border rounded-lg">
                         <AccordionTrigger className="p-6 font-headline text-lg">
-                            2. Test `previewWithAiSuggestions`
+                            2. Test `generateImage`
                         </AccordionTrigger>
                         <AccordionContent>
-                            <CardContent className="pt-6">
-                            <p className="text-muted-foreground">
-                                Uses the script from above (or the story as fallback) to generate suggestions.
-                            </p>
-                            <Button className="mt-4" onClick={() => handleTest('preview')} disabled={!!isLoading}>
-                                {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Generate Preview
-                            </Button>
-                            {previewOutput && (
-                                <div className="mt-4">
-                                <h4 className="font-semibold">Output:</h4>
-                                <pre className="mt-2 w-full whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
-                                    {JSON.stringify(previewOutput, null, 2)}
-                                </pre>
+                            <CardContent className="space-y-4 pt-6">
+                                <p className="text-muted-foreground">
+                                    Modify the Art Style and then generate images for the scenes below. The scenes are pre-populated but you can also generate a new script in Step 1.
+                                </p>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="art-style-image">Art Style</Label>
+                                    <Textarea
+                                    id="art-style-image"
+                                    placeholder="Enter the art style"
+                                    value={artStyle}
+                                    onChange={(e) => setArtStyle(e.target.value)}
+                                    rows={8}
+                                    />
                                 </div>
-                            )}
+                                {scriptOutput && (
+                                    <div className="mt-4">
+                                        <h4 className="font-semibold mb-2">Scenes:</h4>
+                                        <div className="rounded-md border bg-muted p-4">
+                                            <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle} aspectRatio='9:16' />
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </AccordionContent>
                     </AccordionItem>
