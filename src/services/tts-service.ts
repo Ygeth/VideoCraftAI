@@ -21,13 +21,18 @@ class TTSService {
     this.synthesis.cancel();
 
     this.utterance = new SpeechSynthesisUtterance(text);
-    this.utterance.lang = 'en-EN'; // You can make this configurable
+    this.utterance.lang = 'en-US'; // Changed to a more standard locale code
     
     this.utterance.onend = () => {
       onEnd();
     };
 
-    this.utterance.onerror = (event) => {
+    this.utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
+      // Don't log an error if the speech was simply interrupted.
+      if (event.error === 'canceled') {
+        onEnd();
+        return;
+      }
       console.error('SpeechSynthesisUtterance.onerror', event);
       onEnd();
     };
