@@ -39,9 +39,12 @@ export type FormValues = z.infer<typeof formSchema>;
 
 interface FacelessConfigFormProps {
     onFormChange: (data: FormValues) => void;
+    onGenerateScript: () => void;
+    isGeneratingScript: boolean;
+    story?: string;
 }
 
-export function FacelessConfigForm({ onFormChange }: FacelessConfigFormProps) {
+export function FacelessConfigForm({ onFormChange, onGenerateScript, isGeneratingScript, story }: FacelessConfigFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,13 +57,12 @@ export function FacelessConfigForm({ onFormChange }: FacelessConfigFormProps) {
     },
   });
 
-  const watchedValues = form.watch();
   useEffect(() => {
     const subscription = form.watch((value) => {
         onFormChange(value as FormValues);
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, onFormChange]);
+  }, [form, onFormChange]);
 
 
   function onSubmit(data: FormValues) {
@@ -76,7 +78,7 @@ export function FacelessConfigForm({ onFormChange }: FacelessConfigFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
             <InspirationSection form={form} />
-            <ScriptSection form={form} />
+            <ScriptSection form={form} onGenerateScript={onGenerateScript} isGeneratingScript={isGeneratingScript} story={story} />
             <VideoConfigSection form={form} />
             <AdvancedConfigSection form={form} />
         </Accordion>

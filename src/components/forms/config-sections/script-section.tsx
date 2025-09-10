@@ -12,13 +12,18 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { FormValues } from '../faceless-config-form';
+import { Button } from '@/components/ui/button';
+import { Loader2, Sparkles } from 'lucide-react';
 
 
 interface ScriptSectionProps {
   form: UseFormReturn<FormValues>;
+  onGenerateScript: () => void;
+  isGeneratingScript: boolean;
+  story?: string;
 }
 
-export function ScriptSection({ form }: ScriptSectionProps) {
+export function ScriptSection({ form, onGenerateScript, isGeneratingScript, story }: ScriptSectionProps) {
   return (
     <AccordionItem value="item-guion">
       <AccordionTrigger>Guión</AccordionTrigger>
@@ -55,6 +60,10 @@ export function ScriptSection({ form }: ScriptSectionProps) {
             </FormItem>
           )}
         />
+         <Button onClick={onGenerateScript} disabled={isGeneratingScript || !story}>
+            {isGeneratingScript ? <Loader2 className="animate-spin" /> : <Sparkles />}
+            Generar Guion
+        </Button>
       </AccordionContent>
     </AccordionItem>
   );

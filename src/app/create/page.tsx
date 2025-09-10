@@ -124,14 +124,13 @@ export default function VideoCreationPage() {
              </CardDescription>
            </CardHeader>
            <CardContent className="space-y-6">
-             <FacelessConfigForm onFormChange={setFormState} />
+             <FacelessConfigForm 
+                onFormChange={setFormState} 
+                onGenerateScript={handleGenerateScript} 
+                isGeneratingScript={isLoading}
+                story={formState.story}
+             />
            </CardContent>
-           <CardFooter className="flex justify-end">
-             <Button onClick={handleGenerateScript} disabled={isLoading || !formState.story}>
-               {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}
-               Generar Guion
-             </Button>
-           </CardFooter>
          </Card>
         )}
 
