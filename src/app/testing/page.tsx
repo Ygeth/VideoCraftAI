@@ -66,14 +66,12 @@ export default function TestingPage() {
 
       <Accordion type="single" collapsible className="w-full space-y-4">
         <AccordionItem value="item-1" className="border rounded-lg">
-          <AccordionTrigger className="p-6">
-            <div className="text-left">
-              <CardTitle>1. Test `generateVideoScript`</CardTitle>
-              <CardDescription className="pt-2">Input a prompt to generate a video script.</CardDescription>
-            </div>
+          <AccordionTrigger className="p-6 text-left">
+            <CardTitle>1. Test `generateVideoScript`</CardTitle>
           </AccordionTrigger>
           <AccordionContent>
             <CardContent className="space-y-4">
+              <CardDescription>Input a prompt to generate a video script.</CardDescription>
               <Input
                 placeholder="Enter a prompt"
                 value={prompt}
@@ -96,16 +94,14 @@ export default function TestingPage() {
         </AccordionItem>
 
         <AccordionItem value="item-2" className="border rounded-lg">
-          <AccordionTrigger className="p-6">
-            <div className="text-left">
-              <CardTitle>2. Test `previewWithAiSuggestions`</CardTitle>
-              <CardDescription className="pt-2">
-                Uses the script from above (or the prompt as fallback) to generate suggestions.
-              </CardDescription>
-            </div>
+          <AccordionTrigger className="p-6 text-left">
+             <CardTitle>2. Test `previewWithAiSuggestions`</CardTitle>
           </AccordionTrigger>
           <AccordionContent>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <CardDescription>
+                Uses the script from above (or the prompt as fallback) to generate suggestions.
+              </CardDescription>
               <Button onClick={() => handleTest('preview')} disabled={!!isLoading}>
                 {isLoading === 'preview' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Preview
@@ -123,17 +119,15 @@ export default function TestingPage() {
         </AccordionItem>
 
         <AccordionItem value="item-3" className="border rounded-lg">
-          <AccordionTrigger className="p-6">
-            <div className="text-left">
-              <CardTitle>3. Test `textToVideo`</CardTitle>
-              <CardDescription className="pt-2">
+          <AccordionTrigger className="p-6 text-left">
+            <CardTitle>3. Test `textToVideo`</CardTitle>
+          </AccordionTrigger>
+          <AccordionContent>
+            <CardContent className="space-y-4">
+               <CardDescription>
                 Uses the script from step 1 (or the prompt as fallback) to render a video.
                 This may take up to a minute.
               </CardDescription>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <CardContent>
               <Button onClick={() => handleTest('video')} disabled={!!isLoading}>
                 {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Render Video
