@@ -4,12 +4,8 @@ import { useState } from 'react';
 import {
   Wand2,
   FileText,
-  Clapperboard,
   Sparkles,
   Loader2,
-  Film,
-  Music,
-  Captions,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -59,18 +55,11 @@ export default function VideoCreationPage() {
 
 
   const handleGenerateScript = async () => {
-    if (!prompt) {
-      toast({
-        variant: 'destructive',
-        title: 'Prompt is empty',
-        description: 'Please enter a prompt to generate a script.',
-      });
-      return;
-    }
+    const tempPrompt = 'Generate a video script based on the provided configuration.';
     setIsLoading(true);
     setLoadingMessage('Generating script...');
     try {
-      const { script: generatedScript } = await generateVideoScript({ prompt });
+      const { script: generatedScript } = await generateVideoScript({ prompt: tempPrompt });
       setScript(generatedScript);
       nextStep();
     } catch (error) {
@@ -122,17 +111,6 @@ export default function VideoCreationPage() {
            </CardHeader>
            <CardContent className="space-y-6">
              <FacelessConfigForm />
-
-             <div className="space-y-2">
-                <h3 className="text-lg font-medium">Tu Idea</h3>
-                <Textarea
-                    placeholder="Ej: 'Un anuncio de 30 segundos para una nueva marca de café, centrado en el ritual matutino.'"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    rows={4}
-                    disabled={isLoading}
-                />
-             </div>
            </CardContent>
            <CardFooter className="flex justify-end">
              <Button onClick={handleGenerateScript} disabled={isLoading}>
@@ -152,7 +130,7 @@ export default function VideoCreationPage() {
                 Paso 2: Edita tu Guion
               </CardTitle>
               <CardDescription>Refina el guion generado por la IA. Tus cambios se reflejarán en el video final.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               <Textarea
                 value={script}
@@ -183,7 +161,7 @@ export default function VideoCreationPage() {
                 ¡Tu video está listo!
               </CardTitle>
               <CardDescription>Descarga tu video o empieza de nuevo para crear uno nuevo.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               {isLoading && !videoUri ? (
                  <div className="flex flex-col items-center justify-center bg-muted rounded-lg p-8 h-64">
