@@ -26,7 +26,6 @@ const SceneSchema = z.object({
       'A detailed image generation prompt that captures the essence of this scene, following the specified art style.'
     ),
   imageUrl: z.string().optional().describe('The URL of the generated image for this scene.'),
-  audioUrl: z.string().optional().describe('The URL of the generated audio for this scene.'),
 });
 
 const GenerateVideoScriptOutputSchema = z.object({

@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, Volume2 } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
-import { generateNarrationAudio } from '@/ai/flows/generate-narration';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -16,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from '../ui/label';
+import { ttsService } from '@/services/tts-service';
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
 
@@ -30,7 +30,7 @@ interface SceneCardProps {
 
 export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, onUpdate }: SceneCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const { toast } = useToast();
 
   const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -62,29 +62,22 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
     }
   };
 
-  const handleGenerateAudio = async () => {
+  const handleSpeak = () => {
     if (!scene.narrator) {
-        toast({
-            variant: 'destructive',
-            title: 'Narration is empty',
-            description: 'Please provide narration text before generating audio.',
-        });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'Narration is empty',
+        description: 'Please provide narration text to speak.',
+      });
+      return;
     }
-    setIsGeneratingAudio(true);
-    try {
-      const { audioDataUri } = await generateNarrationAudio({ text: scene.narrator });
-      onUpdate(sceneIndex, { ...scene, audioUrl: audioDataUri });
-    } catch (error) {
-        console.error('Failed to generate audio:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Audio generation failed',
-          description: 'Could not generate audio for this scene. Please try again.',
-        });
-    } finally {
-        setIsGeneratingAudio(false);
+    if (isSpeaking) {
+      ttsService.cancel();
+      setIsSpeaking(false);
+      return;
     }
+    setIsSpeaking(true);
+    ttsService.speak(scene.narrator, () => setIsSpeaking(false));
   };
 
 
@@ -131,13 +124,13 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
             <div className="grid w-full gap-1.5 flex-grow">
                 <div className="flex justify-between items-center">
                   <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
-                  <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="ghost" size="sm" className="text-xs">
-                    {isGeneratingAudio ? (
+                  <Button onClick={handleSpeak} variant="ghost" size="sm" className="text-xs">
+                    {isSpeaking ? (
                       <Loader2 className="animate-spin" />
                     ) : (
                       <Volume2 className="mr-1 h-3 w-3" />
                     )}
-                    Generate Audio
+                    {isSpeaking ? 'Stop' : 'Speak'}
                   </Button>
                 </div>
                 <Textarea
@@ -147,11 +140,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                     placeholder="Scene narration..."
                     className="h-24 text-sm"
                 />
-                {scene.audioUrl && (
-                    <audio controls src={scene.audioUrl} className="w-full h-8 mt-1">
-                        Your browser does not support the audio element.
-                    </audio>
-                )}
             </div>
             <div className="grid w-full gap-1.5 flex-grow">
                 <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>
