@@ -13,6 +13,7 @@ import {z} from 'genkit';
 import {MediaPart} from 'genkit';
 
 const GenerateVideoFromSceneInputSchema = z.object({
+  motionScene: z.string().describe('How the scene must move.'),
   narration: z.string().describe('The narration for the scene.'),
   imageDataUri: z
     .string()
@@ -21,9 +22,7 @@ const GenerateVideoFromSceneInputSchema = z.object({
     ),
   aspectRatio: z.string().optional().describe('The aspect ratio for the generated video, e.g., "9:16" or "16:9".'),
 });
-export type GenerateVideoFromSceneInput = z.infer<
-  typeof GenerateVideoFromSceneInputSchema
->;
+export type GenerateVideoFromSceneInput = z.infer<typeof GenerateVideoFromSceneInputSchema>;
 
 const GenerateVideoFromSceneOutputSchema = z.object({
   videoDataUri: z
@@ -56,9 +55,10 @@ const generateVideoFromSceneFlow = ai.defineFlow(
     const base64Data = match[2];
 
     let {operation} = await ai.generate({
-      model: 'googleai/veo-2.0-generate-001',
+      model: 'googleai/veo-3.0-generate-preview',
       prompt: [
-        {text: `Animate this image based on the following narration: ${input.narration}`},
+        {text: `Animate this image based on the following scene motion: ${input.motionScene}.
+          The narration is: ${input.narration}.`},
         {media: { contentType: mimeType, url: `data:;base64,${base64Data}` }},
       ],
       config: {

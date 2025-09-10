@@ -58,6 +58,7 @@ export default function TestingPage() {
             return;
         }
         const result = await generateVideoFromScene({ 
+            motionScene: scene.motionScene,
             narration: scene.narrator,
             imageDataUri: scene.imageUrl,
             aspectRatio: '9:16'

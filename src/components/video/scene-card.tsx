@@ -40,6 +40,11 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onUpdate(sceneIndex, { ...scene, 'img-prompt': e.target.value });
   };
+  
+  const handleMotionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onUpdate(sceneIndex, { ...scene, motionScene: e.target.value });
+  };
+
 
   const handleGenerateImage = async () => {
     setIsGeneratingImage(true);
@@ -149,6 +154,16 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                     onChange={handlePromptChange}
                     placeholder="Image generation prompt..."
                     className="h-24 text-sm font-mono"
+                />
+            </div>
+             <div className="grid w-full gap-1.5 flex-grow">
+                <Label htmlFor={`motion-scene-${sceneIndex}`}>Motion Scene</Label>
+                <Textarea
+                    id={`motion-scene-${sceneIndex}`}
+                    value={scene.motionScene}
+                    onChange={handleMotionChange}
+                    placeholder="e.g., 'Slow zoom in', 'Pan from left to right'..."
+                    className="h-16 text-sm"
                 />
             </div>
           <div className="flex items-center justify-between mt-auto pt-2">
