@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, Volume2 } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
+import { generateImageGeminiImage } from '@/ai/flows/generate-image-gemini-image';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -45,7 +46,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
     onUpdate(sceneIndex, { ...scene, motionScene: e.target.value });
   };
 
-
   const handleGenerateImage = async () => {
     setIsGeneratingImage(true);
     try {
@@ -61,6 +61,26 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
         variant: 'destructive',
         title: 'Image generation failed',
         description: 'Could not generate the image for this scene. Please try again.',
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const handleGenerateImageGemini = async () => {
+    setIsGeneratingImage(true);
+    try {
+      const {imageDataUri} = await generateImageGeminiImage({
+        prompt: scene['img-prompt'],
+      });
+      onUpdate(sceneIndex, {...scene, imageUrl: imageDataUri});
+    } catch (error) {
+      console.error('Failed to generate image with Gemini:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Image generation failed (Gemini)',
+        description:
+          'Could not generate the image for this scene. Please try again.',
       });
     } finally {
       setIsGeneratingImage(false);
@@ -166,15 +186,17 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                     className="h-16 text-sm"
                 />
             </div>
-          <div className="flex items-center justify-between mt-auto pt-2">
-              <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
-                {isGeneratingImage ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Sparkles />
-                )}
-                Generate Image
-              </Button>
+          <div className="flex items-center justify-between mt-auto pt-2 gap-2">
+              <div className="flex gap-2">
+                <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
+                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                  Generate Image (Imagen)
+                </Button>
+                <Button onClick={handleGenerateImageGemini} disabled={isGeneratingImage} variant="outline" size="sm">
+                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                  Generate Image (Gemini)
+                </Button>
+              </div>
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => onDelete(sceneIndex)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
