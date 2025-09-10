@@ -1,10 +1,9 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,22 +33,27 @@ import defaultArtStyle from '@/lib/art-style-default.json';
 
 
 const formSchema = z.object({
-  postiz_api_url: z.string().url(),
-  background_music_volume: z.number().min(0).max(1),
-  chatterbox_exaggeration: z.number().min(0).max(1),
-  chatterbox_cfg_weight: z.number().min(0).max(1),
-  chatterbox_temperature: z.number().min(0).max(1),
-  art_style: z.string().min(10),
   story: z.string().optional(),
-  AI_AGENTS_NO_CODE_TOOLS_URL: z.string().url(),
+  art_style: z.string().min(10),
+  // advanced config
+  postiz_api_url: z.string().url().optional(),
+  background_music_volume: z.number().min(0).max(1).optional(),
+  chatterbox_exaggeration: z.number().min(0).max(1).optional(),
+  chatterbox_cfg_weight: z.number().min(0).max(1).optional(),
+  chatterbox_temperature: z.number().min(0).max(1).optional(),
+  AI_AGENTS_NO_CODE_TOOLS_URL: z.string().url().optional(),
   background_music_id: z.string().optional(),
   sample_audio_id: z.string().optional(),
-  reddit_url: z.string().url(),
-});
+  reddit_url: z.string().url().optional(),
+}).partial();
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
-export function FacelessConfigForm() {
+interface FacelessConfigFormProps {
+    onFormChange: (data: FormValues) => void;
+}
+
+export function FacelessConfigForm({ onFormChange }: FacelessConfigFormProps) {
   const [backgroundMusicFile, setBackgroundMusicFile] = useState<File | null>(null);
   const [sampleAudioFile, setSampleAudioFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState<string | null>(null);
@@ -67,6 +71,12 @@ export function FacelessConfigForm() {
         story: '',
     },
   });
+
+  const watchedValues = form.watch();
+  useEffect(() => {
+    onFormChange(watchedValues);
+  }, [watchedValues, onFormChange]);
+
 
   function onSubmit(data: FormValues) {
     console.log(data);
@@ -122,6 +132,15 @@ export function FacelessConfigForm() {
 
     setIsUploading(fieldName);
     const url = form.getValues('AI_AGENTS_NO_CODE_TOOLS_URL');
+    if (!url) {
+        toast({
+            variant: 'destructive',
+            title: 'AI Agents URL is not set',
+            description: 'Please configure the AI Agents URL in advanced settings.',
+        });
+        setIsUploading(null);
+        return;
+    }
     const uploadUrl = new URL('/api/v1/media/storage', url).toString();
 
     const formData = new FormData();
@@ -162,6 +181,14 @@ export function FacelessConfigForm() {
 
   const handleFetchStories = async () => {
     const url = form.getValues('reddit_url');
+    if (!url) {
+        toast({
+            variant: 'destructive',
+            title: 'Reddit URL is not set',
+            description: 'Please configure the Reddit URL in advanced settings.',
+        });
+        return;
+    }
     setIsFetchingStories(true);
     try {
         const fetchedStories = await getStoriesFromTopics(url);
@@ -376,16 +403,16 @@ export function FacelessConfigForm() {
                 <FormField
                 control={form.control}
                 name="background_music_volume"
-                render={({ field }) => (
+                render={({ field: { onChange, value } }) => (
                     <FormItem>
-                    <FormLabel>Background Music Volume: {field.value}</FormLabel>
+                    <FormLabel>Background Music Volume: {value}</FormLabel>
                     <FormControl>
                         <Slider
                         min={0}
                         max={1}
                         step={0.1}
-                        onValueChange={(value) => field.onChange(value[0])}
-                        value={[field.value]}
+                        onValueChange={(val) => onChange(val[0])}
+                        value={[value || 0.1]}
                         />
                     </FormControl>
                     <FormMessage />
@@ -396,16 +423,16 @@ export function FacelessConfigForm() {
                 <FormField
                 control={form.control}
                 name="chatterbox_exaggeration"
-                render={({ field }) => (
+                render={({ field: { onChange, value } }) => (
                     <FormItem>
-                    <FormLabel>Chatterbox Exaggeration: {field.value}</FormLabel>
+                    <FormLabel>Chatterbox Exaggeration: {value}</FormLabel>
                     <FormControl>
                         <Slider
                         min={0}
                         max={1}
                         step={0.1}
-                        onValueChange={(value) => field.onChange(value[0])}
-                        value={[field.value]}
+                        onValueChange={(val) => onChange(val[0])}
+                        value={[value || 0.6]}
                         />
                     </FormControl>
                     <FormMessage />
@@ -416,16 +443,16 @@ export function FacelessConfigForm() {
                 <FormField
                 control={form.control}
                 name="chatterbox_cfg_weight"
-                render={({ field }) => (
+                render={({ field: { onChange, value } }) => (
                     <FormItem>
-                    <FormLabel>Chatterbox CFG Weight: {field.value}</FormLabel>
+                    <FormLabel>Chatterbox CFG Weight: {value}</FormLabel>
                     <FormControl>
                         <Slider
                         min={0}
                         max={1}
                         step={0.1}
-                        onValueChange={(value) => field.onChange(value[0])}
-                        value={[field.value]}
+                        onValueChange={(val) => onChange(val[0])}
+                        value={[value || 0.5]}
                         />
                     </FormControl>
                     <FormMessage />
@@ -436,16 +463,16 @@ export function FacelessConfigForm() {
                 <FormField
                 control={form.control}
                 name="chatterbox_temperature"
-                render={({ field }) => (
+                render={({ field: { onChange, value } }) => (
                     <FormItem>
-                    <FormLabel>Chatterbox Temperature: {field.value}</FormLabel>
+                    <FormLabel>Chatterbox Temperature: {value}</FormLabel>
                     <FormControl>
                         <Slider
                         min={0}
                         max={1}
                         step={0.1}
-                        onValueChange={(value) => field.onChange(value[0])}
-                        value={[field.value]}
+                        onValueChange={(val) => onChange(val[0])}
+                        value={[value || 0.8]}
                         />
                     </FormControl>
                     <FormMessage />
@@ -461,5 +488,3 @@ export function FacelessConfigForm() {
     </Form>
   );
 }
-
-    

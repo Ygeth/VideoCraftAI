@@ -11,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { generateVideoScript } from '@/ai/flows/generate-video-script';
+import { generateVideoScript, GenerateVideoScriptInput } from '@/ai/flows/generate-video-script';
 import { textToVideo } from '@/ai/flows/text-to-video';
 import { Stepper } from '@/components/ui/stepper';
-import { FacelessConfigForm } from '@/components/forms/faceless-config-form';
+import { FacelessConfigForm, FormValues } from '@/components/forms/faceless-config-form';
+import defaultArtStyle from '@/lib/art-style-default.json';
+
 
 const steps = [
   { id: 'prompt', name: 'Configuración' },
@@ -24,12 +26,15 @@ const steps = [
 
 export default function VideoCreationPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [prompt, setPrompt] = useState('');
   const [script, setScript] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const { toast } = useToast();
+  const [formState, setFormState] = useState<FormValues>({
+    art_style: defaultArtStyle.art_style,
+    story: '',
+  });
 
   const handleError = (error: any, step: string) => {
     console.error(`Error during ${step}:`, error);
@@ -55,11 +60,22 @@ export default function VideoCreationPage() {
 
 
   const handleGenerateScript = async () => {
-    const tempPrompt = 'Generate a video script based on the provided configuration.';
+    if (!formState.story) {
+      toast({
+        variant: 'destructive',
+        title: 'Story is required',
+        description: 'Please provide a story to generate the script.',
+      });
+      return;
+    }
     setIsLoading(true);
     setLoadingMessage('Generating script...');
     try {
-      const { script: generatedScript } = await generateVideoScript({ prompt: tempPrompt });
+      const input: GenerateVideoScriptInput = {
+        story: formState.story,
+        artStyle: formState.art_style
+      };
+      const { script: generatedScript } = await generateVideoScript(input);
       setScript(generatedScript);
       nextStep();
     } catch (error) {
@@ -86,7 +102,6 @@ export default function VideoCreationPage() {
   
   const startOver = () => {
     setCurrentStep(0);
-    setPrompt('');
     setScript('');
     setVideoUri(null);
   }
@@ -97,7 +112,6 @@ export default function VideoCreationPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         <Stepper steps={steps} currentStep={currentStep} className="mb-12" />
 
-        {/* Step 1: Prompt */}
         {steps[currentStep].id === 'prompt' && (
            <Card>
            <CardHeader>
@@ -110,7 +124,7 @@ export default function VideoCreationPage() {
              </CardDescription>
            </CardHeader>
            <CardContent className="space-y-6">
-             <FacelessConfigForm />
+             <FacelessConfigForm onFormChange={setFormState} />
            </CardContent>
            <CardFooter className="flex justify-end">
              <Button onClick={handleGenerateScript} disabled={isLoading}>
@@ -121,7 +135,6 @@ export default function VideoCreationPage() {
          </Card>
         )}
 
-        {/* Step 2: Script Editor */}
         {steps[currentStep].id === 'script' && (
           <Card>
             <CardHeader>
@@ -130,7 +143,7 @@ export default function VideoCreationPage() {
                 Paso 2: Edita tu Guion
               </CardTitle>
               <CardDescription>Refina el guion generado por la IA. Tus cambios se reflejarán en el video final.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <Textarea
                 value={script}
@@ -152,7 +165,6 @@ export default function VideoCreationPage() {
           </Card>
         )}
 
-        {/* Step 3: Final Video */}
         {steps[currentStep].id === 'video' && (
            <Card>
             <CardHeader>
@@ -161,7 +173,7 @@ export default function VideoCreationPage() {
                 ¡Tu video está listo!
               </CardTitle>
               <CardDescription>Descarga tu video o empieza de nuevo para crear uno nuevo.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               {isLoading && !videoUri ? (
                  <div className="flex flex-col items-center justify-center bg-muted rounded-lg p-8 h-64">

@@ -13,7 +13,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateVideoScriptInputSchema = z.object({
-  prompt: z.string().describe('The prompt to use for generating the video script.'),
+  story: z.string().describe('The story to use as inspiration for the video script.'),
+  artStyle: z.string().describe('The art style to use for the video script image prompts.'),
 });
 export type GenerateVideoScriptInput = z.infer<typeof GenerateVideoScriptInputSchema>;
 
@@ -30,7 +31,18 @@ const generateVideoScriptPrompt = ai.definePrompt({
   name: 'generateVideoScriptPrompt',
   input: {schema: GenerateVideoScriptInputSchema},
   output: {schema: GenerateVideoScriptOutputSchema},
-  prompt: `You are a video script writer. Please generate a video script based on the following prompt:\n\nPrompt: {{{prompt}}}`,
+  prompt: `You are a video script writer for short-form vertical videos. Your task is to create a compelling video script based on the provided story.
+The script should be divided into scenes. Each scene must include:
+1.  A "narrator" field with the voiceover text.
+2.  An "img-prompt" field with a detailed image generation prompt that captures the essence of the scene, following the specified art style.
+
+Art Style:
+{{{artStyle}}}
+
+Story:
+{{{story}}}
+
+Generate the script.`,
 });
 
 const generateVideoScriptFlow = ai.defineFlow(
