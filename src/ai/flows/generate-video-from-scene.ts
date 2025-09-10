@@ -47,11 +47,19 @@ const generateVideoFromSceneFlow = ai.defineFlow(
     outputSchema: GenerateVideoFromSceneOutputSchema,
   },
   async input => {
+
+    const match = input.imageDataUri.match(/^data:(image\/\w+);base64,(.*)$/);
+    if (!match) {
+      throw new Error('Invalid image data URI format.');
+    }
+    const mimeType = match[1];
+    const base64Data = match[2];
+
     let {operation} = await ai.generate({
       model: 'googleai/veo-2.0-generate-001',
       prompt: [
         {text: `Animate this image based on the following narration: ${input.narration}`},
-        {media: {url: input.imageDataUri}},
+        {media: { contentType: mimeType, url: `data:;base64,${base64Data}` }},
       ],
       config: {
         durationSeconds: 5,
