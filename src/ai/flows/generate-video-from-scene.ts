@@ -93,6 +93,7 @@ const generateVideoFromSceneFlow = ai.defineFlow(
     }
 
     if (operation.error) {
+      console.error(operation)
       throw new Error('failed to generate video: ' + operation.error.message);
     }
 
