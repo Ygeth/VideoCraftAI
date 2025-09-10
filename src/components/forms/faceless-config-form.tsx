@@ -30,6 +30,8 @@ import {
 import { Upload, Copy, Loader2, BookOpen } from 'lucide-react';
 import { getStoriesFromTopics, RedditStory } from '@/services/reddit-service';
 import { ScrollArea } from '../ui/scroll-area';
+import defaultArtStyle from '@/lib/art-style-default.json';
+
 
 const formSchema = z.object({
   postiz_api_url: z.string().url(),
@@ -38,6 +40,7 @@ const formSchema = z.object({
   chatterbox_cfg_weight: z.number().min(0).max(1),
   chatterbox_temperature: z.number().min(0).max(1),
   art_style: z.string().min(10),
+  story: z.string().optional(),
   AI_AGENTS_NO_CODE_TOOLS_URL: z.string().url(),
   background_music_id: z.string().optional(),
   sample_audio_id: z.string().optional(),
@@ -57,9 +60,11 @@ export function FacelessConfigForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
         ...defaultConfig,
+        art_style: defaultArtStyle.art_style,
         AI_AGENTS_NO_CODE_TOOLS_URL: process.env.NEXT_PUBLIC_AI_AGENTS_NO_CODE_TOOLS_URL || 'http://localhost:8000/',
         background_music_id: '',
         sample_audio_id: '',
+        story: '',
     },
   });
 
@@ -180,9 +185,11 @@ export function FacelessConfigForm() {
   };
 
   const handleCopyToClipboard = (text: string) => {
+    form.setValue('story', text);
     navigator.clipboard.writeText(text);
     toast({
-        title: 'Copied to clipboard!',
+        title: 'Story copied and pasted!',
+        description: "The story has been copied to your clipboard and pasted into the 'Story' field.",
     });
   };
 
@@ -238,6 +245,45 @@ export function FacelessConfigForm() {
                 )}
           </AccordionContent>
         </AccordionItem>
+
+        <AccordionItem value="item-guion">
+            <AccordionTrigger>Guión</AccordionTrigger>
+            <AccordionContent className="space-y-8 pt-6">
+            <FormField
+                control={form.control}
+                name="story"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Story</FormLabel>
+                    <FormControl>
+                        <Textarea rows={10} {...field} placeholder="Paste your story here..."/>
+                    </FormControl>
+                    <FormDescription>
+                        The story you want to turn into a video.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            <FormField
+                control={form.control}
+                name="art_style"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Art Style</FormLabel>
+                    <FormControl>
+                        <Textarea rows={10} {...field} />
+                    </FormControl>
+                    <FormDescription>
+                        Describe the desired visual style for the generated art.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="item-2">
           <AccordionTrigger>Video Configuration</AccordionTrigger>
           <AccordionContent className="space-y-8 pt-6">
@@ -407,22 +453,6 @@ export function FacelessConfigForm() {
                 )}
                 />
 
-                <FormField
-                control={form.control}
-                name="art_style"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Art Style</FormLabel>
-                    <FormControl>
-                        <Textarea rows={10} {...field} />
-                    </FormControl>
-                    <FormDescription>
-                        Describe the desired visual style for the generated art.
-                    </FormDescription>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
                  <Button type="submit">Save Configuration</Button>
             </AccordionContent>
         </AccordionItem>
@@ -431,3 +461,5 @@ export function FacelessConfigForm() {
     </Form>
   );
 }
+
+    
