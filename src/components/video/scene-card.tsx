@@ -5,10 +5,15 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ImageIcon, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { Trash2, Loader2, Sparkles } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
 
@@ -58,25 +63,39 @@ export function SceneCard({ scene, sceneIndex, artStyle, onDelete, onUpdate }: S
     <Card className="overflow-hidden">
       <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-1">
-          <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative">
-            {isGenerating ? (
-              <div className="flex flex-col items-center justify-center text-primary">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p className="mt-2 text-sm">Generating...</p>
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative cursor-pointer">
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center text-primary">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p className="mt-2 text-sm">Generating...</p>
+                  </div>
+                ) : (
+                  <>
+                    <Image
+                      src={imageSrc}
+                      alt={scene['img-prompt']}
+                      fill
+                      className="object-cover rounded-lg"
+                      data-ai-hint="cinematic"
+                    />
+                    <div className="absolute inset-0 bg-black/20 hover:bg-black/10 transition-colors" />
+                  </>
+                )}
               </div>
-            ) : (
-              <>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <div className="aspect-video relative">
                 <Image
                   src={imageSrc}
                   alt={scene['img-prompt']}
                   fill
-                  className="object-cover rounded-lg"
-                  data-ai-hint="cinematic"
+                  className="object-contain rounded-lg"
                 />
-                <div className="absolute inset-0 bg-black/20" />
-              </>
-            )}
-          </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="md:col-span-2 space-y-3">
           <Textarea
