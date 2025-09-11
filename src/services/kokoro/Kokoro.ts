@@ -1,4 +1,4 @@
-import { KokoroTTS, TextSplitterStream } from "kokoro-js";
+import { KokoroTTS, type TextToSpeechOutput } from "kokoro-js";
 import {
   VoiceEnum,
   type kokoroModelPrecision,
@@ -16,49 +16,56 @@ export class Kokoro {
     audio: ArrayBuffer;
     audioLength: number;
   }> {
-    const splitter = new TextSplitterStream();
-    const stream = this.tts.stream(splitter, {
+    const output: TextToSpeechOutput = await this.tts.generate(text, {
       voice,
     });
-    splitter.push(text);
-    splitter.close();
-
-    const output = [];
-    for await (const audio of stream) {
-      output.push(audio);
-    }
-
-    const audioBuffers: ArrayBuffer[] = [];
-    let audioLength = 0;
-    for (const audio of output) {
-      audioBuffers.push(audio.audio.toWav());
-      audioLength += audio.audio.audio.length / audio.audio.sampling_rate;
-    }
-
-    const mergedAudioBuffer = Kokoro.concatWavBuffers(audioBuffers);
+    
+    const audioBuffer = this.encodeWAV(output.audio, output.sampling_rate);
+    const audioLength = output.audio.length / output.sampling_rate;
+    
     logger.debug({ text, voice, audioLength }, "Audio generated with Kokoro");
 
     return {
-      audio: mergedAudioBuffer,
+      audio: audioBuffer,
       audioLength: audioLength,
     };
   }
 
-  static concatWavBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
-    const header = Buffer.from(buffers[0].slice(0, 44));
-    let totalDataLength = 0;
+  private encodeWAV(samples: Float32Array, sampleRate: number): ArrayBuffer {
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
 
-    const dataParts = buffers.map((buf) => {
-      const b = Buffer.from(buf);
-      const data = b.slice(44);
-      totalDataLength += data.length;
-      return data;
-    });
+    // RIFF chunk descriptor
+    this.writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + samples.length * 2, true);
+    this.writeString(view, 8, 'WAVE');
+    // "fmt " sub-chunk
+    this.writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // Audio format 1 is PCM
+    view.setUint16(22, 1, true); // Num channels
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); // Byte rate
+    view.setUint16(32, 2, true); // Block align
+    view.setUint16(34, 16, true); // Bits per sample
+    // "data" sub-chunk
+    this.writeString(view, 36, 'data');
+    view.setUint32(40, samples.length * 2, true);
 
-    header.writeUInt32LE(36 + totalDataLength, 4);
-    header.writeUInt32LE(totalDataLength, 40);
+    // Write the PCM samples
+    let offset = 44;
+    for (let i = 0; i < samples.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
 
-    return Buffer.concat([header, ...dataParts]);
+    return buffer;
+  }
+
+  private writeString(view: DataView, offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
   }
 
   static async init(dtype: kokoroModelPrecision): Promise<Kokoro> {
