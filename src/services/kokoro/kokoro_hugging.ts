@@ -1,4 +1,3 @@
-'use server';
 
 import { KokoroTTS, TextToSpeechOutput } from "kokoro-js";
 import {
