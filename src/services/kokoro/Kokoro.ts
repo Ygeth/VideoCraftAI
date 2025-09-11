@@ -4,7 +4,7 @@ import {
   type kokoroModelPrecision,
   type Voices,
 } from "./kokoroConfig";
-import { KOKORO_MODEL, logger } from "../../config";
+import { KOKORO_MODEL, logger } from "./kokoroConfig";
 
 export class Kokoro {
   constructor(private tts: KokoroTTS) {}
