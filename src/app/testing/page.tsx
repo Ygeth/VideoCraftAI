@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
-import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User } from 'lucide-react';
+import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
-type ActiveFlow = 'n8n' | 'veo';
+type ActiveFlow = 'n8n' | 'veo' | 'imagenes';
 
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
@@ -106,6 +106,12 @@ export default function TestingPage() {
                     <SidebarMenuButton onClick={() => setActiveFlow('veo')} isActive={activeFlow === 'veo'}>
                         <TestTube />
                         <span className="group-data-[collapsible=icon]:hidden">Flujo Veo</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setActiveFlow('imagenes')} isActive={activeFlow === 'imagenes'}>
+                        <ImageIcon />
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo Imagenes</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -274,6 +280,40 @@ export default function TestingPage() {
                             <CardContent className="space-y-4 pt-6">
                                 <p className="text-muted-foreground">
                                     Modify the Art Style and then generate images for the scenes below. The scenes are pre-populated but you can also generate a new script in Step 1.
+                                </p>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="art-style-image">Art Style</Label>
+                                    <Textarea
+                                    id="art-style-image"
+                                    placeholder="Enter the art style"
+                                    value={artStyle}
+                                    onChange={(e) => setArtStyle(e.target.value)}
+                                    rows={8}
+                                    />
+                                </div>
+                                {scriptOutput && (
+                                    <div className="mt-4">
+                                        <h4 className="font-semibold mb-2">Scenes:</h4>
+                                        <div className="rounded-md border bg-muted p-4">
+                                            <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle} aspectRatio='9:16' />
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
+
+                {/* Imagenes Flow Test */}
+                {activeFlow === 'imagenes' && (
+                    <AccordionItem value="item-2" className="border rounded-lg">
+                        <AccordionTrigger className="p-6 font-headline text-lg">
+                            2. Test `generateImage` & `generateImageGeminiImage`
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <CardContent className="space-y-4 pt-6">
+                                <p className="text-muted-foreground">
+                                    Modify the Art Style and then generate images for the scenes below using either Imagen or Gemini image generation models.
                                 </p>
                                 <div className="grid gap-2">
                                     <Label htmlFor="art-style-image">Art Style</Label>

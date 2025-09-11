@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Trash2, Loader2, Sparkles, AudioLines } from 'lucide-react';
+import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
 import { generateImageGeminiImage } from '@/ai/flows/generate-image-gemini-image';
@@ -196,7 +196,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                   Generate Audio
                 </Button>
                 <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
-                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <ImageIcon />}
                   Image (Imagen)
                 </Button>
                 <Button onClick={handleGenerateImageGemini} disabled={isGeneratingImage} variant="outline" size="sm">
