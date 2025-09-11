@@ -14,8 +14,8 @@ export function Header() {
         </Link>
         <nav>
           <Button variant="ghost" asChild>
-            <Link href="/testing">
-              Testing Page
+            <Link href="/admin">
+              Admin Panel
             </Link>
           </Button>
         </nav>

@@ -29,6 +29,9 @@ export enum VoiceEnum {
     bf_lily = "bf_lily",
     bm_daniel = "bm_daniel",
     bm_fable = "bm_fable",
+    em_santa = "em_santa",
+    ef_dora = "ef_dora",
+    ef_dora = "ef_dora",
   }
 
 const defaultLogLevel = 'info';

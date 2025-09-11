@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
-import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon, AudioLines } from 'lucide-react';
+import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon, AudioLines, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -32,7 +32,7 @@ import { KokoroFlow } from '@/components/testing/KokoroFlow';
 type Scene = GenerateVideoScriptOutput['scenes'][0];
 type ActiveFlow = 'n8n' | 'veo' | 'imagenes' | 'kokoro';
 
-export default function TestingPage() {
+export default function AdminPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultArtStyle.art_style);
   const [scriptOutput, setScriptOutput] = useState<GenerateVideoScriptOutput>({ scenes: defaultScenes.scenes });
@@ -145,9 +145,9 @@ export default function TestingPage() {
         <div className="container mx-auto p-4 md:p-8">
             <div className="flex items-center gap-4 mb-8">
                 <SidebarTrigger />
-                <Beaker className="h-10 w-10 text-accent" />
+                <Settings className="h-10 w-10 text-accent" />
                 <div>
-                <h1 className="text-3xl font-bold font-headline">GenAI Testing Lab</h1>
+                <h1 className="text-3xl font-bold font-headline">Admin Panel</h1>
                 <p className="text-muted-foreground">
                     A dedicated space to experiment with individual AI flows.
                 </p>
