@@ -32,8 +32,8 @@ export function ImagenesFlow({
     handleSetScenes
 }: ImagenesFlowProps) {
     return (
-        <div className="grid md:grid-cols-2 gap-8">
-            <Card>
+        <div className="grid md:grid-cols-5 gap-8">
+            <Card className="md:col-span-2">
                 <CardHeader>
                     <CardTitle>Guion y Estilo</CardTitle>
                     <CardDescription>
@@ -67,7 +67,7 @@ export function ImagenesFlow({
                     </Button>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="md:col-span-3">
                 <CardHeader>
                     <CardTitle>Escenas</CardTitle>
                     <CardDescription>
