@@ -21,9 +21,9 @@ export class KokoroHugging {
    * @param voice La voz a utilizar para la generación.
    * @returns Un objeto con los datos de audio y la duración.
    */
-  async generate(text: string, voices: Voices): Promise<{audio: Float32Array; sampling_rate: number; audioLength: number;}> {
+  async generate(text: string, voice: Voices): Promise<{audio: Float32Array; sampling_rate: number; audioLength: number;}> {
     const output: TextToSpeechOutput = await this.tts.generate(text, {
-      voice: "em_alex",
+      voice,
     });
     
     const audioLength = output.audio.length / output.sampling_rate;
