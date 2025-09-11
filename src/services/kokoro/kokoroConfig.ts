@@ -28,7 +28,7 @@ export enum VoiceEnum {
     bf_alice = "bf_alice",
     bf_lily = "bf_lily",
     bm_daniel = "bm_daniel",
-fable = "bm_fable",
+    fable = "bm_fable",
     em_santa = "em_santa",
     ef_dora = "ef_dora",
     em_alex = "em_alex",
@@ -36,4 +36,4 @@ fable = "bm_fable",
 
 export type kokoroModelPrecision = "fp32" | "fp16" | "q8" | "q4" | "q4f16";
 export type Voices = `${VoiceEnum}`;
-export const KOKORO_MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
+export const KOKORO_MODEL = "onnx-community/Kokoro-82M-ONNX";
