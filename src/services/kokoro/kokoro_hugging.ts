@@ -6,7 +6,6 @@ import {
   type kokoroModelPrecision,
   type Voices,
   KOKORO_MODEL,
-  logger,
 } from "./kokoroConfig";
 
 /**
@@ -36,7 +35,7 @@ export class KokoroHugging {
     const audioBuffer = this.encodeWAV(output.audio, output.sampling_rate);
     const audioLength = output.audio.length / output.sampling_rate;
     
-    logger.debug({ text, voice, audioLength }, "Audio generated with KokoroHugging");
+    console.log(`Audio generated with KokoroHugging: ${audioLength}s`);
 
     return {
       audio: audioBuffer,
