@@ -7,3 +7,4 @@ import '@/ai/flows/generate-video-script.ts';
 import '@/ai/flows/generate-image.ts';
 import '@/ai/flows/generate-image-gemini-image.ts';
 import '@/ai/flows/generate-narration-audio.ts';
+import '@/ai/flows/generate-audio-kokoro.ts';

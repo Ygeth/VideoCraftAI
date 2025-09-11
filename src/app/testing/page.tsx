@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
-import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon, AudioLines } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -26,10 +26,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VeoFlow } from '@/components/testing/VeoFlow';
 import { N8nFlow } from '@/components/testing/N8nFlow';
 import { ImagenesFlow } from '@/components/testing/ImagenesFlow';
+import { KokoroFlow } from '@/components/testing/KokoroFlow';
 
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
-type ActiveFlow = 'n8n' | 'veo' | 'imagenes';
+type ActiveFlow = 'n8n' | 'veo' | 'imagenes' | 'kokoro';
 
 export default function TestingPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
@@ -117,6 +118,12 @@ export default function TestingPage() {
                         <span className="group-data-[collapsible=icon]:hidden">Flujo Imagenes</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setActiveFlow('kokoro')} isActive={activeFlow === 'kokoro'}>
+                        <AudioLines />
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo Kokoro</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -184,6 +191,9 @@ export default function TestingPage() {
                     scriptOutput={scriptOutput}
                     handleSetScenes={handleSetScenes}
                 />
+            )}
+             {activeFlow === 'kokoro' && (
+                <KokoroFlow />
             )}
         </div>
       </SidebarInset>
