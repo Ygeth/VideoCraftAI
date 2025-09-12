@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { generateVideoScript, GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { previewWithAiSuggestions } from '@/ai/flows/preview-with-ai-suggestions';
 import { generateVideoFromScene } from '@/ai/flows/generate-video-from-scene';
-import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon, AudioLines, Settings } from 'lucide-react';
+import { Loader2, Beaker, Video, TestTube, Bot, Clapperboard, User, Image as ImageIcon, AudioLines, Settings, Mic, Film } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Accordion,
@@ -27,10 +27,12 @@ import { VeoFlow } from '@/components/flows/VeoFlow';
 import { N8nFlow } from '@/components/flows/N8nFlow';
 import { ImagenesFlow } from '@/components/flows/ImagenesFlow';
 import { KokoroFlow } from '@/components/flows/KokoroFlow';
+import { WhisperFlow } from '@/components/flows/WhisperFlow';
+import { RemotionFlow } from '@/components/flows/RemotionFlow';
 
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
-type ActiveFlow = 'n8n' | 'veo' | 'imagenes' | 'kokoro';
+type ActiveFlow = 'n8n' | 'veo' | 'imagenes' | 'kokoro' | 'whisper' | 'remotion';
 
 export default function AdminPage() {
   const [story, setStory] = useState('A short video about sustainable farming');
@@ -119,6 +121,18 @@ export default function AdminPage() {
                         <span className="group-data-[collapsible=icon]:hidden">Flujo Kokoro</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setActiveFlow('whisper')} isActive={activeFlow === 'whisper'}>
+                        <Mic />
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo Whisper</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setActiveFlow('remotion')} isActive={activeFlow === 'remotion'}>
+                        <Film />
+                        <span className="group-data-[collapsible=icon]:hidden">Flujo Remotion</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -189,6 +203,12 @@ export default function AdminPage() {
             )}
              {activeFlow === 'kokoro' && (
                 <KokoroFlow />
+            )}
+            {activeFlow === 'whisper' && (
+                <WhisperFlow />
+            )}
+            {activeFlow === 'remotion' && (
+                <RemotionFlow />
             )}
         </div>
       </SidebarInset>
