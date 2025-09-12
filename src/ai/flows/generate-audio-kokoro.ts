@@ -14,6 +14,7 @@ import { kokoroInstance } from '@/services/kokoro';
 
 const GenerateAudioKokoroInputSchema = z.object({
   text: z.string().describe('The text to convert to speech.'),
+  voice: z.string().optional().describe('The voice to use for the audio generation.'),
 });
 export type GenerateAudioKokoroInput = z.infer<typeof GenerateAudioKokoroInputSchema>;
 
@@ -28,6 +29,12 @@ function encodeWAV(samples: Float32Array, sampleRate: number): ArrayBuffer {
   const view = new DataView(buffer);
 
   // RIFF chunk descriptor
+  function writeString(view: DataView, offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+
   writeString(view, 0, 'RIFF');
   view.setUint32(4, 36 + samples.length * 2, true);
   writeString(view, 8, 'WAVE');
@@ -54,11 +61,6 @@ function encodeWAV(samples: Float32Array, sampleRate: number): ArrayBuffer {
   return buffer;
 }
 
-function writeString(view: DataView, offset: number, str: string) {
-  for (let i = 0; i < str.length; i++) {
-    view.setUint8(offset + i, str.charCodeAt(i));
-  }
-}
 
 export async function generateAudioKokoro(input: GenerateAudioKokoroInput): Promise<GenerateAudioKokoroOutput> {
   return generateAudioKokoroFlow(input);
@@ -71,7 +73,10 @@ const generateAudioKokoroFlow = ai.defineFlow(
     outputSchema: GenerateAudioKokoroOutputSchema,
   },
   async (input) => {
-    const { audio, sampling_rate, audioLength } = await kokoroInstance.generate(input.text, 'af_bella');
+    // Default to a known stable voice if not provided
+    const voiceToUse = input.voice || 'en_us_002';
+
+    const { audio, sampling_rate, audioLength } = await kokoroInstance.generate(input.text, voiceToUse as any);
     
     const audioBuffer = encodeWAV(audio, sampling_rate);
     const audioDataUri = `data:audio/wav;base64,${Buffer.from(audioBuffer).toString('base64')}`;
