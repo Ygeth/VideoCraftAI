@@ -19,7 +19,7 @@ interface N8nFlowProps {
     isLoading: string | null;
     handleTest: (flow: 'script' | 'preview' | 'video', data?: any) => void;
     scriptOutput: GenerateVideoScriptOutput;
-    handleSetScenes: (scenes: Scene[]) => void;
+    setScriptOutput: (output: GenerateVideoScriptOutput) => void;
 }
 
 export function N8nFlow({
@@ -30,8 +30,13 @@ export function N8nFlow({
     isLoading,
     handleTest,
     scriptOutput,
-    handleSetScenes
+    setScriptOutput
 }: N8nFlowProps) {
+
+    const handleScenesChange = (newScenes: Scene[]) => {
+        setScriptOutput({ ...scriptOutput, scenes: newScenes });
+    }
+
     return (
         <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
             <AccordionItem value="item-1" className="border rounded-lg">
@@ -91,7 +96,12 @@ export function N8nFlow({
                             <div className="mt-4">
                                 <h4 className="font-semibold mb-2">Scenes:</h4>
                                 <div className="rounded-md border bg-muted p-4">
-                                    <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle} aspectRatio='9:16' />
+                                    <SceneList 
+                                        scenes={scriptOutput.scenes} 
+                                        onScenesChange={handleScenesChange}
+                                        artStyle={artStyle} 
+                                        aspectRatio='9:16' 
+                                    />
                                 </div>
                             </div>
                         )}

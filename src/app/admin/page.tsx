@@ -82,11 +82,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleSetScenes = (scenes: GenerateVideoScriptOutput['scenes']) => {
-    setScriptOutput({ scenes });
-  };
-
-
   return (
     <SidebarProvider>
       <Sidebar>
@@ -162,7 +157,7 @@ export default function AdminPage() {
                 isLoading={isLoading}
                 handleTest={handleTest}
                 scriptOutput={scriptOutput}
-                handleSetScenes={handleSetScenes}
+                setScriptOutput={setScriptOutput}
                 selectedSceneIndex={selectedSceneIndex}
                 setSelectedSceneIndex={setSelectedSceneIndex}
                 videoUri={videoUri}
@@ -177,7 +172,7 @@ export default function AdminPage() {
                 isLoading={isLoading}
                 handleTest={handleTest}
                 scriptOutput={scriptOutput}
-                handleSetScenes={handleSetScenes}
+                setScriptOutput={setScriptOutput}
               />
             )}
             {activeFlow === 'imagenes' && (
@@ -189,7 +184,7 @@ export default function AdminPage() {
                     isLoading={isLoading}
                     handleTest={handleTest}
                     scriptOutput={scriptOutput}
-                    handleSetScenes={handleSetScenes}
+                    setScriptOutput={setScriptOutput}
                 />
             )}
              {activeFlow === 'kokoro' && (

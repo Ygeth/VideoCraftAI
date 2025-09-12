@@ -18,7 +18,7 @@ interface ImagenesFlowProps {
     isLoading: string | null;
     handleTest: (flow: 'script' | 'preview' | 'video', data?: any) => void;
     scriptOutput: GenerateVideoScriptOutput;
-    handleSetScenes: (scenes: Scene[]) => void;
+    setScriptOutput: (output: GenerateVideoScriptOutput) => void;
 }
 
 export function ImagenesFlow({
@@ -29,8 +29,13 @@ export function ImagenesFlow({
     isLoading,
     handleTest,
     scriptOutput,
-    handleSetScenes
+    setScriptOutput
 }: ImagenesFlowProps) {
+    
+    const handleScenesChange = (newScenes: Scene[]) => {
+        setScriptOutput({ ...scriptOutput, scenes: newScenes });
+    }
+
     return (
         <div className="grid md:grid-cols-5 gap-8">
             <Card className="md:col-span-2">
@@ -78,7 +83,12 @@ export function ImagenesFlow({
                     {scriptOutput && (
                         <div>
                             <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
-                                <SceneList scenes={scriptOutput.scenes} setScenes={handleSetScenes} artStyle={artStyle} aspectRatio='9:16' />
+                                <SceneList 
+                                    scenes={scriptOutput.scenes} 
+                                    onScenesChange={handleScenesChange} 
+                                    artStyle={artStyle} 
+                                    aspectRatio='9:16' 
+                                />
                             </div>
                         </div>
                     )}

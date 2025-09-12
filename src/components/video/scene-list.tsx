@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { SceneCard } from './scene-card';
 import { Button } from '../ui/button';
@@ -10,23 +11,32 @@ type Scenes = GenerateVideoScriptOutput['scenes'];
 
 interface SceneListProps {
   scenes: Scenes;
-  setScenes: (scenes: Scenes | ((prevScenes: Scenes) => Scenes)) => void;
+  onScenesChange: (scenes: Scenes) => void;
   artStyle: string;
   aspectRatio: string;
 }
 
-export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneListProps) {
-  
+export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio }: SceneListProps) {
+  const [_scenes, _setScenes] = useState(scenes);
+
+  useEffect(() => {
+    _setScenes(scenes);
+  }, [scenes]);
+
+  const handleSceneUpdate = (updatedScenes: Scenes) => {
+    _setScenes(updatedScenes);
+    onScenesChange(updatedScenes);
+  }
+
   const handleDeleteScene = (index: number) => {
-    setScenes(prevScenes => prevScenes.filter((_, i) => i !== index));
+    const newScenes = _scenes.filter((_, i) => i !== index);
+    handleSceneUpdate(newScenes);
   };
 
   const handleUpdateScene = (index: number, updatedScene: Scene) => {
-    setScenes(prevScenes => {
-      const newScenes = [...prevScenes];
-      newScenes[index] = updatedScene;
-      return newScenes;
-    });
+    const newScenes = [..._scenes];
+    newScenes[index] = updatedScene;
+    handleSceneUpdate(newScenes);
   };
 
   const handleAddScene = () => {
@@ -35,12 +45,17 @@ export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneLis
         'img-prompt': 'A new image prompt.',
         motionScene: 'Static scene, no movement.',
     };
-    setScenes(prevScenes => [...prevScenes, newScene]);
+    const newScenes = [..._scenes, newScene];
+    handleSceneUpdate(newScenes);
+  }
+
+  if (!_scenes) {
+    return null;
   }
 
   return (
     <div className="space-y-4">
-      {scenes.map((scene, index) => (
+      {_scenes.map((scene, index) => (
         <SceneCard
           key={index}
           scene={scene}
