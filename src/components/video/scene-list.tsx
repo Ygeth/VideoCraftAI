@@ -5,11 +5,12 @@ import { SceneCard } from './scene-card';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 
+type Scene = GenerateVideoScriptOutput['scenes'][0];
 type Scenes = GenerateVideoScriptOutput['scenes'];
 
 interface SceneListProps {
   scenes: Scenes;
-  setScenes: React.Dispatch<React.SetStateAction<Scenes>>;
+  setScenes: (scenes: Scenes | ((prevScenes: Scenes) => Scenes)) => void;
   artStyle: string;
   aspectRatio: string;
 }
@@ -20,16 +21,16 @@ export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneLis
     setScenes(prevScenes => prevScenes.filter((_, i) => i !== index));
   };
 
-  const handleUpdateScene = (index: number, updatedScene: Scenes[0]) => {
+  const handleUpdateScene = (index: number, updatedScene: Scene) => {
     setScenes(prevScenes => {
-        const newScenes = [...prevScenes];
-        newScenes[index] = updatedScene;
-        return newScenes;
+      const newScenes = [...prevScenes];
+      newScenes[index] = updatedScene;
+      return newScenes;
     });
   };
 
   const handleAddScene = () => {
-    const newScene: Scenes[0] = {
+    const newScene: Scene = {
         narrator: 'New scene narration.',
         'img-prompt': 'A new image prompt.',
         motionScene: 'Static scene, no movement.',
