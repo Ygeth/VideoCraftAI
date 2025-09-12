@@ -9,7 +9,7 @@ type Scenes = GenerateVideoScriptOutput['scenes'];
 
 interface SceneListProps {
   scenes: Scenes;
-  setScenes: (scenes: Scenes) => void;
+  setScenes: React.Dispatch<React.SetStateAction<Scenes>>;
   artStyle: string;
   aspectRatio: string;
 }
@@ -17,14 +17,15 @@ interface SceneListProps {
 export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneListProps) {
   
   const handleDeleteScene = (index: number) => {
-    const newScenes = scenes.filter((_, i) => i !== index);
-    setScenes(newScenes);
+    setScenes(prevScenes => prevScenes.filter((_, i) => i !== index));
   };
 
   const handleUpdateScene = (index: number, updatedScene: Scenes[0]) => {
-    const newScenes = [...scenes];
-    newScenes[index] = updatedScene;
-    setScenes(newScenes);
+    setScenes(prevScenes => {
+        const newScenes = [...prevScenes];
+        newScenes[index] = updatedScene;
+        return newScenes;
+    });
   };
 
   const handleAddScene = () => {
@@ -33,7 +34,7 @@ export function SceneList({ scenes, setScenes, artStyle, aspectRatio }: SceneLis
         'img-prompt': 'A new image prompt.',
         motionScene: 'Static scene, no movement.',
     };
-    setScenes([...scenes, newScene]);
+    setScenes(prevScenes => [...prevScenes, newScene]);
   }
 
   return (

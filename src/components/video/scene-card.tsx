@@ -19,6 +19,7 @@ import {
 import { Label } from '../ui/label';
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
+type Scenes = GenerateVideoScriptOutput['scenes'];
 
 interface SceneCardProps {
   scene: Scene;
