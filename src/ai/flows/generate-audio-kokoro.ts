@@ -74,7 +74,7 @@ const generateAudioKokoroFlow = ai.defineFlow(
   },
   async (input) => {
     // Default to a known stable voice if not provided
-    const voiceToUse = input.voice || 'en_us_002';
+    const voiceToUse = input.voice || 'bf_isabella';
 
     const { audio, sampling_rate, audioLength } = await kokoroInstance.generate(input.text, voiceToUse as any);
     
