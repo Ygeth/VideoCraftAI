@@ -23,10 +23,10 @@ import { SceneList } from '@/components/video/scene-list';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { VeoFlow } from '@/components/testing/VeoFlow';
-import { N8nFlow } from '@/components/testing/N8nFlow';
-import { ImagenesFlow } from '@/components/testing/ImagenesFlow';
-import { KokoroFlow } from '@/components/testing/KokoroFlow';
+import { VeoFlow } from '@/components/flows/VeoFlow';
+import { N8nFlow } from '@/components/flows/N8nFlow';
+import { ImagenesFlow } from '@/components/flows/ImagenesFlow';
+import { KokoroFlow } from '@/components/flows/KokoroFlow';
 
 
 type Scene = GenerateVideoScriptOutput['scenes'][0];
