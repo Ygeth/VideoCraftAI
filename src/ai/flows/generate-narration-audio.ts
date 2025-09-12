@@ -33,30 +33,37 @@ const generateNarrationAudioFlow = ai.defineFlow(
     outputSchema: GenerateNarrationAudioOutputSchema,
   },
   async input => {
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Pulcherrima'},
+    console.log('Generating narration audio with Gemini TTS:', input);
+    try {
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-preview-tts',
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {voiceName: 'Pulcherrima'},
+            },
           },
         },
-      },
-      prompt: input.text,
-    });
-    if (!media) {
-      throw new Error('no media returned');
-    }
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    
-    const wavData = await toWav(audioBuffer);
-    const audioDataUri = `data:audio/wav;base64,${wavData}`;
+        prompt: input.text,
+      });
+      if (!media) {
+        console.error('Gemini TTS returned no media.');
+        throw new Error('no media returned');
+      }
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+      
+      const wavData = await toWav(audioBuffer);
+      const audioDataUri = `data:audio/wav;base64,${wavData}`;
 
-    return { audioDataUri };
+      return { audioDataUri };
+    } catch (error) {
+      console.error("Error in generateNarrationAudioFlow: ", error);
+      throw error;
+    }
   }
 );
 
@@ -74,7 +81,10 @@ async function toWav(
     });
 
     let bufs: any[] = [];
-    writer.on('error', reject);
+    writer.on('error', (err) => {
+      console.error('WAV encoding error:', err);
+      reject(err);
+    });
     writer.on('data', function (d) {
       bufs.push(d);
     });

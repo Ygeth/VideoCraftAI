@@ -32,19 +32,26 @@ const generateImageGeminiImageFlow = ai.defineFlow(
     outputSchema: GenerateImageGeminiImageOutputSchema,
   },
   async input => {
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image-preview',
-      prompt: input.prompt,
-      config: {
-        responseModalities: ['IMAGE', 'TEXT'], // Important: IMAGE only won't work
-      },
-    });
-
-    const imageDataUri = media.url;
-    if (!imageDataUri) {
-      throw new Error('Image generation failed to return a data URI.');
+    console.log('Generating image with Gemini Image:', input);
+    try {
+      const {media} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-image-preview',
+        prompt: input.prompt,
+        config: {
+          responseModalities: ['IMAGE', 'TEXT'], // Important: IMAGE only won't work
+        },
+      });
+  
+      const imageDataUri = media.url;
+      if (!imageDataUri) {
+        console.error('Image generation (Gemini) failed to return a data URI.');
+        throw new Error('Image generation failed to return a data URI.');
+      }
+  
+      return {imageDataUri};
+    } catch (error) {
+      console.error("Error in generateImageGeminiImageFlow: ", error);
+      throw error;
     }
-
-    return {imageDataUri};
   }
 );

@@ -34,22 +34,29 @@ const generateImageFlow = ai.defineFlow(
     outputSchema: GenerateImageOutputSchema,
   },
   async input => {
-    // Combine the art style and the specific scene prompt.
-    const finalPrompt = `Art Style: ${input.artStyle}\n\nPrompt: ${input.prompt}`;
+    console.log('Generating image with Imagen:', input);
+    try {
+      // Combine the art style and the specific scene prompt.
+      const finalPrompt = `Art Style: ${input.artStyle}\n\nPrompt: ${input.prompt}`;
 
-    const {media} = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: finalPrompt,
-      config: {
-        aspectRatio: input.aspectRatio,
-      },
-    });
+      const {media} = await ai.generate({
+        model: 'googleai/imagen-4.0-fast-generate-001',
+        prompt: finalPrompt,
+        config: {
+          aspectRatio: input.aspectRatio,
+        },
+      });
 
-    const imageDataUri = media.url;
-    if (!imageDataUri) {
-      throw new Error('Image generation failed to return a data URI.');
+      const imageDataUri = media.url;
+      if (!imageDataUri) {
+        console.error('Image generation (Imagen) failed to return a data URI.');
+        throw new Error('Image generation failed to return a data URI.');
+      }
+
+      return {imageDataUri};
+    } catch (error) {
+      console.error("Error in generateImageFlow: ", error);
+      throw error;
     }
-
-    return {imageDataUri};
   }
 );

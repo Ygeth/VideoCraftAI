@@ -67,8 +67,18 @@ const generateVideoScriptFlow = ai.defineFlow(
     outputSchema: GenerateVideoScriptOutputSchema,
   },
   async input => {
-    const {output} = await generateVideoScriptPrompt(input);
-    console.log(output!)
-    return output!;
+    console.log('Generating video script:', input);
+    try {
+      const {output} = await generateVideoScriptPrompt(input);
+      if (!output) {
+        console.error('generateVideoScriptPrompt returned no output.');
+        throw new Error('Failed to generate video script.');
+      }
+      console.log('Generated script:', JSON.stringify(output, null, 2));
+      return output;
+    } catch (error) {
+      console.error("Error in generateVideoScriptFlow: ", error);
+      throw error;
+    }
   }
 );

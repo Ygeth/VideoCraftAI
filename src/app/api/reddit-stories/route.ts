@@ -5,7 +5,10 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const redditUrl = searchParams.get('url');
 
+  console.log(`Fetching Reddit stories from: ${redditUrl}`);
+
   if (!redditUrl) {
+    console.error('Reddit URL is required but was not provided.');
     return NextResponse.json({ message: 'Reddit URL is required' }, { status: 400 });
   }
 
@@ -20,9 +23,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-        console.error("Reddit API request failed with status:", response.status, response.statusText);
         const errorText = await response.text();
-        console.error('Reddit API Error Body:', errorText);
+        console.error(`Failed to fetch from Reddit. Status: ${response.status} ${response.statusText}. URL: ${redditUrl}. Body: ${errorText}`);
         return NextResponse.json({ message: `Failed to fetch from Reddit: ${response.statusText}` }, { status: response.status });
     }
 
@@ -42,10 +44,11 @@ export async function GET(request: NextRequest) {
             title: data.title,
             selftext: data.selftext,
         }));
-
+    
+    console.log(`Successfully fetched and filtered ${filteredStories.length} stories.`);
     return NextResponse.json(filteredStories);
   } catch (error: any) {
-    console.error('Proxy Error:', error);
+    console.error(`Error in Reddit stories proxy for URL: ${redditUrl}. Error:`, error);
     return NextResponse.json({ message: 'An internal server error occurred' }, { status: 500 });
   }
 }
