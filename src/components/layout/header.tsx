@@ -18,6 +18,11 @@ export function Header() {
               Admin Panel
             </Link>
           </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/video">
+              Video Panel
+            </Link>
+          </Button>
         </nav>
       </div>
     </header>

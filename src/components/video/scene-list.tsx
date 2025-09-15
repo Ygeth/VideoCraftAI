@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { SceneCard } from './scene-card';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-
-type Scene = GenerateVideoScriptOutput['scenes'][0];
-type Scenes = GenerateVideoScriptOutput['scenes'];
+import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+type Scene = GenerateScriptShortOutput['scenes'][0];
+type Scenes = GenerateScriptShortOutput['scenes'];
 
 interface SceneListProps {
   scenes: Scenes;
@@ -42,7 +41,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio }: Sce
   const handleAddScene = () => {
     const newScene: Scene = {
         narrator: 'New scene narration.',
-        'img-prompt': 'A new image prompt.',
+        imgPrompt: 'A new image prompt.',
         motionScene: 'Static scene, no movement.',
     };
     const newScenes = [..._scenes, newScene];

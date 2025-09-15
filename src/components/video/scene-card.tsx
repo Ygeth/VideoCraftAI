@@ -6,9 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
-import type { GenerateVideoScriptOutput } from '@/ai/flows/generate-video-script';
 import { generateImage } from '@/ai/flows/generate-image';
-import { generateImageGeminiImage } from '@/ai/flows/generate-image-gemini-image';
+import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
 import { generateNarrationAudio } from '@/ai/flows/generate-narration-audio';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -17,8 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from '../ui/label';
-
-type Scene = GenerateVideoScriptOutput['scenes'][0];
+import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+type Scene = GenerateScriptShortOutput['scenes'][0];
 
 interface SceneCardProps {
   scene: Scene;
@@ -39,7 +38,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
   };
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onUpdate(sceneIndex, { ...scene, 'img-prompt': e.target.value });
+    onUpdate(sceneIndex, { ...scene, imgPrompt: e.target.value });
   };
   
   const handleMotionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -50,7 +49,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
     setIsGeneratingImage(true);
     try {
       const { imageDataUri } = await generateImage({ 
-        prompt: scene['img-prompt'],
+        prompt: scene.imgPrompt,
         artStyle: artStyle,
         aspectRatio: aspectRatio,
       });
@@ -70,8 +69,10 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
   const handleGenerateImageGemini = async () => {
     setIsGeneratingImage(true);
     try {
-      const {imageDataUri} = await generateImageGeminiImage({
-        prompt: scene['img-prompt'],
+      const {imageDataUri} = await generateImageGemini({
+        prompt: scene.imgPrompt,
+        artStyle: artStyle,
+        aspectRatio: aspectRatio,
       });
       onUpdate(sceneIndex, {...scene, imageUrl: imageDataUri});
     } catch (error) {
@@ -129,7 +130,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                 <>
                   <Image
                     src={imageSrc}
-                    alt={scene['img-prompt']}
+                    alt={scene.imgPrompt}
                     fill
                     className="object-cover rounded-lg"
                     data-ai-hint="cinematic"
@@ -143,7 +144,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
             <div className="w-full h-full relative">
               <Image
                 src={imageSrc}
-                alt={scene['img-prompt']}
+                alt={scene.imgPrompt}
                 fill
                 className="object-contain rounded-lg"
               />
@@ -173,7 +174,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                 <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>
                 <Textarea
                     id={`img-prompt-${sceneIndex}`}
-                    value={scene['img-prompt']}
+                    value={scene.imgPrompt}
                     onChange={handlePromptChange}
                     placeholder="Image generation prompt..."
                     className="h-24 text-sm font-mono"

@@ -19,7 +19,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import defaultArtStyle from '@/lib/art-style-default.json';
 import defaultScenes from '@/lib/default-scenes.json';
-import { SceneList } from '@/components/video/scene-list';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
