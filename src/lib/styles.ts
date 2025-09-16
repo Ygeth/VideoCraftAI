@@ -10,7 +10,7 @@ export interface Style {
 
 export const styles: Style[] = [
   {
-    name: 'Friendly',
+    name: 'Friendly - Aquarela',
     tone: tones.find(t => t.name === 'Friendly')!,
     bgMusicUrl: '/music/bg_friendly_daydream.mp3',
     overlayUrl: null,

@@ -11,34 +11,26 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateImageInputSchema = z.object({
-  prompt: z.string().describe('The text prompt to generate an image from.'),
-  artStyle: z.string().describe('The art style to apply to the image.'),
-  aspectRatio: z.string().optional().describe('The aspect ratio for the generated image, e.g., "9:16" or "16:9".'),
-});
-export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
+import { ImageInput, ImageInputSchema } from '@/ai/flows/short-videos/schemas';
+import { ImageOutput, ImageOutputSchema } from '@/ai/flows/short-videos/schemas';
 
-const GenerateImageOutputSchema = z.object({
-  imageDataUri: z.string().describe('The generated image as a data URI.'),
-});
-export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
-
-export async function generateImage(input: GenerateImageInput): Promise<GenerateImageOutput> {
+export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   return generateImageFlow(input);
 }
 
 const generateImageFlow = ai.defineFlow(
   {
     name: 'generateImageFlow',
-    inputSchema: GenerateImageInputSchema,
-    outputSchema: GenerateImageOutputSchema,
+    inputSchema: ImageInputSchema,
+    outputSchema: ImageOutputSchema,
   },
   async input => {
     console.log('Generating image with Imagen:', input);
+    let finalPrompt = input.prompt +
+      (input.artStyle ? " in the style of " + (input.artStyle) : "");
+    
     try {
       // Combine the art style and the specific scene prompt.
-      const finalPrompt = `Art Style: ${input.artStyle}\n\nPrompt: ${input.prompt}`;
-
       const {media} = await ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: finalPrompt,
@@ -47,7 +39,7 @@ const generateImageFlow = ai.defineFlow(
         },
       });
 
-      const imageDataUri = media.url;
+      const imageDataUri = media?.url;
       if (!imageDataUri) {
         console.error('Image generation (Imagen) failed to return a data URI.');
         throw new Error('Image generation failed to return a data URI.');

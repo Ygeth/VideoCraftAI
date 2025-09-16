@@ -12,6 +12,7 @@ import { audioTestData } from '@/lib/audio-test-data';
 import { imageTestData } from '@/lib/image-test-data';
 import { SelectLabel } from '@radix-ui/react-select';
 import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
+import { generateImage } from '@/ai/flows/short-videos/generate-image';
 import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
@@ -108,7 +109,8 @@ export default function VideoPage() {
       // const image: ImageOutput = await new Promise(resolve => setTimeout(() => {
       //   resolve({ imageDataUri: imageTestData });
       // }, 2000));
-      const image = await generateImageGemini({ prompt: scene.imgPrompt, artStyle: artStyle });
+      // const image = await generateImageGemini({ prompt: scene.imgPrompt, artStyle: artStyle });
+      const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
       scene.imageUrl = image.imageDataUri;
 
       if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {

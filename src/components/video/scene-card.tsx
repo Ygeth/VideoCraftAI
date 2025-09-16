@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
-import { generateImage } from '@/ai/flows/generate-image';
+import { generateImage } from '@/ai/flows/short-videos/generate-image';
 import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
 import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
 import { useToast } from '@/hooks/use-toast';
