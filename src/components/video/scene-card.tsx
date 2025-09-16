@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
 import { generateImage } from '@/ai/flows/generate-image';
 import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
-import { generateNarrationAudio } from '@/ai/flows/generate-narration-audio';
+import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { downloadFile } from '@/services/aiAgentsTools';
 import {
@@ -20,6 +20,8 @@ import {
 import { VisuallyHidden } from '../ui/visually-hidden';
 import { Label } from '../ui/label';
 import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { Tone } from '@/lib/tones';
+
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
 interface SceneCardProps {
@@ -27,11 +29,12 @@ interface SceneCardProps {
   sceneIndex: number;
   artStyle: string;
   aspectRatio: string;
+  tone: Tone;
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
 }
 
-export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate }: SceneCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
@@ -125,7 +128,11 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
     }
     setIsGeneratingAudio(true);
     try {
-      const { audioDataUri } = await generateNarrationAudio({ text: scene.narrator });
+      const { audioDataUri } = await generateSpeech({ 
+        text: scene.narrator,
+        voice: tone.voice,
+        tonePrompt: tone.tonePrompt,
+      });
       onUpdate(sceneIndex, { ...scene, audioUrl: audioDataUri });
     } catch (error) {
       console.error('Failed to generate audio:', error);

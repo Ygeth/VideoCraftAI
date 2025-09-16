@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneList } from "@/components/video/scene-list";
 import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { Tone } from '@/lib/tones';
+import { Style, styles } from "@/lib/styles";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -25,6 +28,10 @@ interface shortGeneratorProps {
   setScenes: (output: GenerateScriptShortOutput) => void;
   finalVideoId: string | null;
   onDownloadFinalVideo: () => void;
+  tone: Tone;
+  setTone: (tone: Tone) => void;
+  style: Style;
+  setStyle: (style: Style) => void;
 }
 
 export function ShortGenerator({
@@ -41,11 +48,22 @@ export function ShortGenerator({
   scenes,
   setScenes,
   finalVideoId,
-  onDownloadFinalVideo
+  onDownloadFinalVideo,
+  tone,
+  setTone,
+  style,
+  setStyle
 }: shortGeneratorProps) {
 
   const handleScenesChange = (newScenes: Scene[]) => {
     setScenes({ ...scenes, scenes: newScenes });
+  }
+
+  const handleStyleChange = (styleName: string) => {
+    const newStyle = styles.find(s => s.name === styleName);
+    if (newStyle) {
+      setStyle(newStyle);
+    }
   }
 
   return (
@@ -66,6 +84,21 @@ export function ShortGenerator({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
+            <Label>Style Preset</Label>
+            <Select value={style.name} onValueChange={handleStyleChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a style" />
+              </SelectTrigger>
+              <SelectContent>
+                {styles.map(s => (
+                  <SelectItem key={s.name} value={s.name}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
             <Label htmlFor="story-imagenes">Guion (Story)</Label>
             <Textarea
               id="story-imagenes"
@@ -76,7 +109,7 @@ export function ShortGenerator({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="art-style-imagenes">Art Style</Label>
+            <Label htmlFor="art-style-imagenes">Art Style Prompt (editable)</Label>
             <Textarea
               id="art-style-imagenes"
               placeholder="Enter the art style"
@@ -114,6 +147,8 @@ export function ShortGenerator({
                   onScenesChange={handleScenesChange}
                   artStyle={artStyle}
                   aspectRatio='9:16'
+                  tone={tone}
+                  setTone={setTone}
                 />
               </div>
             </div>

@@ -14,6 +14,8 @@ import wav from 'wav';
 
 const GenerateSpeechInputSchema = z.object({
   text: z.string().describe('The text to convert to speech.'),
+  voice: z.string().describe('The voice to use for the speech.'),
+  tonePrompt: z.string().describe('The prompt to set the tone of the voice.'),
 });
 export type GenerateSpeechInput = z.infer<typeof GenerateSpeechInputSchema>;
 
@@ -34,18 +36,32 @@ const generateSpeechFlow = ai.defineFlow(
   },
   async input => {
     console.log('Generating narration audio with Gemini TTS:', input);
+    // try {
+    //   const {media} = await ai.generate({
+    //     model: 'googleai/gemini-2.5-flash-preview-tts',
+    //     config: {
+    //       responseModalities: ['AUDIO'],
+    //       speechConfig: {
+    //         voiceConfig: {
+    //           prebuiltVoiceConfig: {voiceName: 'Orus'}, // voice
+    //         },
+    //       },
+    //     },
+    //     // contents: [{parts: [{text: 'Whisper in a spooky tone:' + input.text}]}],
+    //         console.log('Generating narration audio with Gemini TTS:', input);
     try {
       const {media} = await ai.generate({
         model: 'googleai/gemini-2.5-flash-preview-tts',
         config: {
           responseModalities: ['AUDIO'],
+          temperature: 2,
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: {voiceName: 'Orus'},
+              prebuiltVoiceConfig: {voiceName: input.voice},
             },
           },
         },
-        prompt: "Say in a spooky whisper: '" + input.text+ "'",
+        prompt: input.tonePrompt + `'` + input.text + `'`,
       });
       if (!media) {
         console.error('Gemini TTS returned no media.');

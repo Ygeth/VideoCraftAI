@@ -4,7 +4,6 @@ import React from 'react';
 import { ShortGenerator } from '@/components/video/shortGenerator';
 import { Scene, ImageOutput } from '@/ai/flows/short-videos/schemas';
 import { useState } from 'react';
-import defaultArtStyle from '@/lib/art-style-default.json';
 import defaultScenes from '@/lib/default-scenes.json';
 import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +13,8 @@ import { imageTestData } from '@/lib/image-test-data';
 import { SelectLabel } from '@radix-ui/react-select';
 import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
 import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
+import { tones, defaultTone, Tone } from '@/lib/tones';
+import { styles, defaultStyle, Style } from '@/lib/styles';
 
 async function dataUriToToFile(dataUri: string, fileName: string): Promise<File> {
   const response = await fetch(dataUri);
@@ -24,7 +25,7 @@ async function dataUriToToFile(dataUri: string, fileName: string): Promise<File>
 export default function VideoPage() {
   const { toast } = useToast();
   const [story, setStory] = useState('A short video about sustainable farming');
-  const [artStyle, setArtStyle] = useState(defaultArtStyle.art_style);
+  const [artStyle, setArtStyle] = useState(defaultStyle.artStyle);
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
@@ -32,6 +33,14 @@ export default function VideoPage() {
   const [scenes, setScenes] = useState<GenerateScriptShortOutput>({ scenes: [] });
   const [finalVideoId, setFinalVideoId] = useState<string | null>(null);
   const [backgroundMusicId, setBackgroundMusicId] = useState<string | undefined>(undefined);
+  const [tone, setTone] = useState<Tone>(defaultTone);
+  const [style, setStyle] = useState<Style>(defaultStyle);
+
+  const handleStyleChange = (newStyle: Style) => {
+    setStyle(newStyle);
+    setTone(newStyle.tone);
+    setArtStyle(newStyle.artStyle);
+  };
 
   const generateScript = async () => {
     setIsLoading('Generating script...');
@@ -65,14 +74,18 @@ export default function VideoPage() {
 
       
       // Añadir Musica de fondo
-      //upload overlay from public/music/.mp4 
-      const bgMusicResponse = await fetch('/music/bg_music.mp3');
-      const bgMusicBlob = await bgMusicResponse.blob();
-      const bgMusicFile = new File([bgMusicBlob], 'bg_music.mp3', { type: 'audio/mpeg' });
-      const savedBgMusic = await saveFile(bgMusicFile, 'audio');
+      if (style.bgMusicUrl) {
+        const bgMusicResponse = await fetch(style.bgMusicUrl);
+        const bgMusicBlob = await bgMusicResponse.blob();
+        const fileName = style.bgMusicUrl.split('/').pop() || 'bg_music';
+        const bgMusicFile = new File([bgMusicBlob], fileName, { type: bgMusicBlob.type });
+        const savedBgMusic = await saveFile(bgMusicFile, 'audio');
 
-      await pollFileStatus(savedBgMusic.file_id);
-      setBackgroundMusicId(savedBgMusic.file_id);
+        await pollFileStatus(savedBgMusic.file_id);
+        setBackgroundMusicId(savedBgMusic.file_id);
+      } else {
+        setBackgroundMusicId(undefined);
+      }
       setScenes({ scenes: updatedScenes });
 
       toast({ title: 'Images, Audio and Scene Videos Generated Successfully' });
@@ -122,7 +135,11 @@ export default function VideoPage() {
       // const audio: { audioDataUri: string } = await new Promise(resolve => setTimeout(() => {
       //   resolve({ audioDataUri: audioTestData });
       // }, 3000));
-      const audio = await generateSpeech({ text: scene.narrator }); //, artStyle: artStyle });
+      const audio = await generateSpeech({
+        text: scene.narrator,
+        voice: tone.voice,
+        tonePrompt: tone.tonePrompt,
+      }); //, artStyle: artStyle });
       scene.audioUrl = audio.audioDataUri;
       if (audio.audioDataUri && audio.audioDataUri.startsWith('data:')) {
         const audioFile = await dataUriToToFile(audio.audioDataUri, `scene-${scene.id}.mp3`);
@@ -176,18 +193,23 @@ export default function VideoPage() {
       // merge videos de todas las escenas
       console.log('Final video ID:', finalVideo);
 
-      // Añadir overlay
-      const overlayResponse = await fetch('/video/bg_1.mp4');
-      const overlayBlob = await overlayResponse.blob();
-      const overlayFile = new File([overlayBlob], 'bg_1.mp4', { type: 'video/mp4' });
-      const savedOverlay = await saveFile(overlayFile, 'video');
+      if (style.overlayUrl) {
+        // Añadir overlay
+        const overlayResponse = await fetch(style.overlayUrl);
+        const overlayBlob = await overlayResponse.blob();
+        const fileName = style.overlayUrl.split('/').pop() || 'overlay';
+        const overlayFile = new File([overlayBlob], fileName, { type: overlayBlob.type });
+        const savedOverlay = await saveFile(overlayFile, 'video');
 
-      await pollFileStatus(finalVideo.file_id);
-      await pollFileStatus(savedOverlay.file_id);
-      const videoWithOverlay = await addColorkeyOverlay(finalVideo.file_id, savedOverlay.file_id, '#000000');
-      await pollFileStatus(videoWithOverlay.file_id);
-      
-      setFinalVideoId(videoWithOverlay.file_id);
+        await pollFileStatus(finalVideo.file_id);
+        await pollFileStatus(savedOverlay.file_id);
+        const videoWithOverlay = await addColorkeyOverlay(finalVideo.file_id, savedOverlay.file_id, '#000000');
+        await pollFileStatus(videoWithOverlay.file_id);
+        
+        setFinalVideoId(videoWithOverlay.file_id);
+      } else {
+        setFinalVideoId(finalVideo.file_id);
+      }
       handleDownloadFinalVideo()
 
     } catch (error) {
@@ -260,6 +282,10 @@ export default function VideoPage() {
         setScenes={setScenes}
         finalVideoId={finalVideoId}
         onDownloadFinalVideo={handleDownloadFinalVideo}
+        tone={tone}
+        setTone={setTone}
+        style={style}
+        setStyle={handleStyleChange}
       />
     </main>
   );

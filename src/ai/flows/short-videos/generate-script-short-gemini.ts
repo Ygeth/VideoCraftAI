@@ -30,6 +30,7 @@ export async function generateScriptShort(input: GenerateScriptShortInput): Prom
 }
 
 const generateScriptShortPrompt = ai.definePrompt({
+  model: 'googleai/gemini-2.5-flash',
   name: 'generateScriptShortPrompt',
   input: {schema: GenerateScriptShortInputSchema},
   output: {schema: GenerateScriptShortOutputSchema},

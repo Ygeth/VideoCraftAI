@@ -107,6 +107,10 @@ export const ttsVideoConfigSchema = z.object({
 export type ttsVideoConfig = z.infer<typeof ttsVideoConfigSchema>;
 export async function generateTTSCaptionedVideo(imageId: string, audioId: string, text: string, config?: ttsVideoConfig): Promise<{ file_id: string }> { 
     const finalConfig = config || ttsVideoConfigSchema.parse({});
+    // randomize finalConfig.image_effect between "ken_burns", "pan", "still"
+    const effects = ['ken_burns', 'pan', 'still'];
+    finalConfig.image_effect = effects[Math.floor(Math.random() * effects.length)];
+
     const formData = new FormData();
     formData.append('background_id', imageId);
     formData.append('audio_id', audioId);
@@ -117,7 +121,8 @@ export async function generateTTSCaptionedVideo(imageId: string, audioId: string
     formData.append('caption_config_font_color', finalConfig.caption_config_font_color || '#FFFFFF');
     formData.append('caption_config_font_bold', finalConfig.caption_config_font_bold ? 'true' : 'false');
     formData.append('caption_config_subtitle_position', finalConfig.caption_config_subtitle_position || 'bottom');
-    formData.append('image_effect', finalConfig.image_effect || 'pan');
+    formData.append('image_effect', finalConfig.image_effect || 'still');
+
 
     const videoGenerationUrl = '/api/generate-tts-captioned-video';
 
