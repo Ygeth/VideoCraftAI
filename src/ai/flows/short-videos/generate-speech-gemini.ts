@@ -41,11 +41,11 @@ const generateSpeechFlow = ai.defineFlow(
           responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: {voiceName: 'Pulcherrima'},
+              prebuiltVoiceConfig: {voiceName: 'Orus'},
             },
           },
         },
-        prompt: input.text,
+        prompt: "Say in a spooky whisper: '" + input.text+ "'",
       });
       if (!media) {
         console.error('Gemini TTS returned no media.');

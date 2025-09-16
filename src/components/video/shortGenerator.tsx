@@ -18,10 +18,13 @@ interface shortGeneratorProps {
   isLoading: string | null;
   isLoadingImages: boolean;
   isLoadingAudio: boolean;
+  isLoadingVideo: boolean;
   onGenerateScript: () => void;
   onGenerateVideo: (scenes: Scene[]) => void;
   scenes: GenerateScriptShortOutput;
   setScenes: (output: GenerateScriptShortOutput) => void;
+  finalVideoId: string | null;
+  onDownloadFinalVideo: () => void;
 }
 
 export function ShortGenerator({
@@ -32,10 +35,13 @@ export function ShortGenerator({
   isLoading,
   isLoadingImages,
   isLoadingAudio,
+  isLoadingVideo,
   onGenerateScript,
   onGenerateVideo,
   scenes,
-  setScenes
+  setScenes,
+  finalVideoId,
+  onDownloadFinalVideo
 }: shortGeneratorProps) {
 
   const handleScenesChange = (newScenes: Scene[]) => {
@@ -49,8 +55,8 @@ export function ShortGenerator({
           <div className="flex justify-between items-center">
             <CardTitle>Guion y Estilo</CardTitle>
             <Button onClick={() => onGenerateScript()} disabled={!!isLoading}>
-              {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generate Script
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? 'Generating...' : 'Generate Script'}
             </Button>
           </div>
           <CardDescription>
@@ -85,10 +91,15 @@ export function ShortGenerator({
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Escenas</CardTitle>
-            <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || isLoading === 'video'}>
-              {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Generate Video
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || !!isLoadingVideo || !!isLoading}>
+                {(isLoadingImages || isLoadingAudio || isLoadingVideo) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Generate Video
+              </Button>
+              <Button onClick={onDownloadFinalVideo} disabled={!finalVideoId}>
+                Download Video
+              </Button>
+            </div>
           </div>
           <CardDescription>
             Revisa las escenas y genera las imágenes con los modelos de IA.

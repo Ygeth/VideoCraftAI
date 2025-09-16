@@ -36,7 +36,7 @@ const generateImageGeminiFlow = ai.defineFlow(
         },
       });
   
-      const imageDataUri = media.url;
+      const imageDataUri = media?.url;
       if (!imageDataUri) {
         console.error('Image generation (Gemini) failed to return a data URI.');
         throw new Error('Image generation failed to return a data URI.');

@@ -20,7 +20,7 @@ export type GenerateVideoScriptInput = z.infer<typeof GenerateVideoScriptInputSc
 
 const SceneSchema = z.object({
   narrator: z.string().describe('The voiceover text for this scene.'),
-  'img-prompt': z
+  imgPrompt: z
     .string()
     .describe(
       'A detailed image generation prompt that captures the essence of this scene, following the specified art style.'
@@ -48,7 +48,7 @@ const generateVideoScriptPrompt = ai.definePrompt({
   prompt: `You are a video script writer for short-form vertical videos. Your task is to create a compelling video script based on the provided story and return it in a structured JSON format.
 The script should be an array of scenes. Each scene object must include:
 1.  A "narrator" field with the voiceover text for the scene.
-2.  An "img-prompt" field with a detailed image generation prompt that captures the essence of the scene, following the specified art style.
+2.  An "imgPrompt" field with a detailed image generation prompt that captures the essence of the scene, following the specified art style.
 3.  A "motionScene" field with a short description of the desired camera movement or animation for the scene (e.g., 'Slow zoom in on the character's face', 'Pan from left to right across the landscape', 'A fast-paced dolly shot').
 
 Art Style:

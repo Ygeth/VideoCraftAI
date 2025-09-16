@@ -10,11 +10,14 @@ import { generateImage } from '@/ai/flows/generate-image';
 import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
 import { generateNarrationAudio } from '@/ai/flows/generate-narration-audio';
 import { useToast } from '@/hooks/use-toast';
+import { downloadFile } from '@/services/aiAgentsTools';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from '../ui/visually-hidden';
 import { Label } from '../ui/label';
 import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
 type Scene = GenerateScriptShortOutput['scenes'][0];
@@ -32,6 +35,29 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
+
+  const handleDownloadVideo = async () => {
+    if (scene.videoTTSId) {
+      try {
+        const videoBlob = await downloadFile(scene.videoTTSId);
+        const url = window.URL.createObjectURL(videoBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `video_scene_${sceneIndex}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error downloading video:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Download failed',
+          description: 'Could not download the video. Please try again.',
+        });
+      }
+    }
+  };
 
   const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onUpdate(sceneIndex, { ...scene, narrator: e.target.value });
@@ -141,6 +167,9 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
             </div>
           </DialogTrigger>
           <DialogContent className="max-w-4xl h-[90vh]">
+            <VisuallyHidden>
+              <DialogTitle>Image Preview</DialogTitle>
+            </VisuallyHidden>
             <div className="w-full h-full relative">
               <Image
                 src={imageSrc}
@@ -154,7 +183,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
 
         <div className="space-y-2 flex flex-col flex-grow h-full">
             <div className="grid w-full gap-1.5 flex-grow">
-                <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center">
                   <Label htmlFor={`narrator-${sceneIndex}`}>Narrator</Label>
                 </div>
                 <Textarea
@@ -171,9 +200,9 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
               </audio>
             )}
             <div className="grid w-full gap-1.5 flex-grow">
-                <Label htmlFor={`img-prompt-${sceneIndex}`}>Image Prompt</Label>
+                <Label htmlFor={`imgPrompt-${sceneIndex}`}>Image Prompt</Label>
                 <Textarea
-                    id={`img-prompt-${sceneIndex}`}
+                    id={`imgPrompt-${sceneIndex}`}
                     value={scene.imgPrompt}
                     onChange={handlePromptChange}
                     placeholder="Image generation prompt..."
@@ -204,6 +233,11 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, onDelete, 
                   {isGeneratingImage ? <Loader2 className="animate-spin" /> : <Sparkles />}
                   Image (Gemini)
                 </Button>
+                {scene.videoTTSId && (
+                  <Button onClick={handleDownloadVideo} variant="outline" size="sm">
+                    Download Video
+                  </Button>
+                )}
               </div>
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => onDelete(sceneIndex)}>
                 <Trash2 className="h-4 w-4" />
