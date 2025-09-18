@@ -6,12 +6,22 @@ export interface Tone {
 
 export const tones: Tone[] = [
   {
-    name: 'Spooky',
+    name: 'M Spooky',
     voice: 'Enceladus',
-    tonePrompt: 'In a ominous tone, fast speaking: ',
+    tonePrompt: 'In ominous tone, fast speaking: ',
   },
   {
-    name: 'Friendly',
+    name: 'M Serious - Energetic',
+    voice: 'Enceladus',
+    tonePrompt: 'In a ominous and energetic tone, fast speaking: ',
+  },
+  {
+    name: 'F Excited - Nervous',
+    voice: 'Autonoe',
+    tonePrompt: 'In a excited and nervous, engaging tone: ',
+  },
+  {
+    name: 'F Friendly',
     voice: 'Autonoe',
     tonePrompt: 'In a friendly and engaging tone: ',
   },

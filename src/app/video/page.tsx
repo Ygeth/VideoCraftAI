@@ -16,6 +16,7 @@ import { generateImage } from '@/ai/flows/short-videos/generate-image';
 import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
+import { TaskQueue } from '@/lib/queue';
 
 async function dataUriToToFile(dataUri: string, fileName: string): Promise<File> {
   const response = await fetch(dataUri);
@@ -47,22 +48,19 @@ export default function VideoPage() {
     setIsLoading('Generating script...');
     try {
       const scriptOutput: GenerateScriptShortOutput = await generateScriptShort({ story, artStyle });
-      // const scriptOutput: GenerateScriptShortOutput = {
-      //   scenes: defaultScenes.scenes.map((scene, index) => ({
-      //     id: `${Date.now()}-${index}`,
-      //     narrator: scene.narrator,
-      //     imgPrompt: scene.imgPrompt,
-      //     motionScene: scene.motionScene,
-      //   })),
-      // };
       setScenes(scriptOutput);
       toast({ title: 'Script Scenes Generated Successfully' });
 
       setIsLoading('Generating images, audio and videos...');
-      const updatedScenes = await Promise.all(scriptOutput.scenes.map(async (scene) => {
+      
+      const imageQueue = new TaskQueue(6000); // 10 images per minute
+      const audioQueue = new TaskQueue(1000); // No limit specified, using 1 second
+      const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
+
+      const processScene = async (scene: Scene) => {
         const imageId = await generateImageForScene(scene);
         const audioId = await generateAudioForScene(scene);
-        
+
         let videoTTSId: string | undefined;
         if (imageId && audioId) {
           await pollFileStatus(imageId);
@@ -70,10 +68,19 @@ export default function VideoPage() {
           const tempScene = { ...scene, imageStorageId: imageId, audioStorageId: audioId };
           videoTTSId = await generateVideoForScene(tempScene);
         }
-        return { ...scene, imageStorageId: imageId, audioStorageId: audioId, videoTTSId: videoTTSId };
-      }));
 
-      
+        setScenes(prevScenes => ({
+          ...prevScenes,
+          scenes: prevScenes.scenes.map(s => 
+            s.id === scene.id ? { ...s, imageStorageId: imageId, audioStorageId: audioId, videoTTSId: videoTTSId } : s
+          )
+        }));
+      };
+
+      scriptOutput.scenes.forEach(scene => {
+        imageQueue.add(() => processScene(scene));
+      });
+
       // Añadir Musica de fondo
       if (style.bgMusicUrl) {
         const bgMusicResponse = await fetch(style.bgMusicUrl);
@@ -87,7 +94,6 @@ export default function VideoPage() {
       } else {
         setBackgroundMusicId(undefined);
       }
-      setScenes({ scenes: updatedScenes });
 
       toast({ title: 'Images, Audio and Scene Videos Generated Successfully' });
 

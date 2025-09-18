@@ -8,9 +8,7 @@
  * - GenerateImageOutput - The return type for the generateImage function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
+import { imageAI } from '@/ai/genkit';
 import { ImageInput, ImageInputSchema } from '@/ai/flows/short-videos/schemas';
 import { ImageOutput, ImageOutputSchema } from '@/ai/flows/short-videos/schemas';
 
@@ -18,7 +16,7 @@ export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   return generateImageFlow(input);
 }
 
-const generateImageFlow = ai.defineFlow(
+const generateImageFlow = imageAI.defineFlow(
   {
     name: 'generateImageFlow',
     inputSchema: ImageInputSchema,
@@ -26,16 +24,15 @@ const generateImageFlow = ai.defineFlow(
   },
   async input => {
     console.log('Generating image with Imagen:', input);
-    let finalPrompt = input.prompt +
+    let finalPrompt = "aspectRatio: '9:16'" + input.prompt +
       (input.artStyle ? " in the style of " + (input.artStyle) : "");
     
     try {
       // Combine the art style and the specific scene prompt.
-      const {media} = await ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
+      const {media} = await imageAI.generate({
         prompt: finalPrompt,
         config: {
-          aspectRatio: input.aspectRatio,
+          aspectRatio: '9:16', // 1:1, 9:16, 16:9, 4:3, 3:4
         },
       });
 
