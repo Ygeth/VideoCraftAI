@@ -36,8 +36,10 @@ const generateScriptShortPrompt = ai.definePrompt({
   output: {schema: GenerateScriptShortOutputSchema},
   prompt: `You are a video script writer for short-form vertical videos. Your task is to create a compelling video script inspired on the provided story, elements or the narration can change to improve the narrative. Return it in a structured JSON format.
 The script should be an array of scenes. Each scene object must include:
-1.  A "narrator" field with the prompt for the voiceover text for the scene. Use the sign punctuation and style that best fits the narration style.
-2.  An "imgPrompt" field with a detailed image generation prompt that captures the essence of the scene, following the specified art style. The image prompt must have the following format:
+1.  An "narrator" field with the prompt for the voiceover text for the scene. Use the sign punctuation and style that best fits the narration style.
+2.  An "imgPromptStart" field with a detailed image generation prompt that captures the essence of the first frame of this scene, following the specified art style.
+3.  An "imgPromptEnd" field with a detailed image generation prompt that captures the essence of the last frame of this scene, following the specified art style.
+Both images must have the following format:
   Scene Characters:
   - {Name}: Character Prompt: {Character phisical description.}
   - Others characters as needed.

@@ -24,9 +24,8 @@ const generateImageGeminiFlow = ai.defineFlow(
   },
   async input => {
     console.log('Generating image with Gemini Image:', input);
-    let auxPrompt = input.prompt +
-      (input.artStyle ? " in the style of " + (input.artStyle) : "") +
-      (input.aspectRatio ? " with aspect ratio " + input.aspectRatio : "");
+    let auxPrompt = "Aspect ratio: '9:16'. " + input.prompt +
+      (input.artStyle ? " in the style of " + (input.artStyle) : "");
     try {
       const {media} = await ai.generate({
         model: 'googleai/gemini-2.5-flash-image-preview',

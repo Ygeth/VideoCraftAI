@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShortGenerator } from '@/components/video/shortGenerator';
+import { ShortGeneratorMultipleImages } from '@/components/video/shortGeneratorMultipleImages';
 import { Scene, ImageOutput } from '@/ai/flows/short-videos/schemas';
 import { useState } from 'react';
 import defaultScenes from '@/lib/default-scenes.json';
@@ -11,9 +11,9 @@ import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColo
 import { audioTestData } from '@/lib/audio-test-data';
 import { imageTestData } from '@/lib/image-test-data';
 import { SelectLabel } from '@radix-ui/react-select';
-import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
+// import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
 import { generateImage } from '@/ai/flows/short-videos/generate-image';
-import { generateImage as generateImageFal } from '@/ai/flows/short-videos/generate-image-fal';
+// import { generateImage as generateImageFal } from '@/ai/flows/short-videos/generate-image-fal';
 import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
@@ -25,7 +25,7 @@ async function dataUriToToFile(dataUri: string, fileName: string): Promise<File>
   return new File([blob], fileName, { type: blob.type });
 }
 
-export default function VideoPage() {
+export default function VideoMultipleImagesPage() {
   const { toast } = useToast();
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultStyle.artStyle);
@@ -59,21 +59,21 @@ export default function VideoPage() {
       const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
 
       const processScene = async (scene: Scene) => {
-        const imageId = await generateImageForScene(scene);
+        const imageIds = await generateImageForScene(scene);
         const audioId = await generateAudioForScene(scene);
 
         let videoTTSId: string | undefined;
-        if (imageId && audioId) {
-          await pollFileStatus(imageId);
-          await pollFileStatus(audioId);
-          const tempScene = { ...scene, imageStorageId: imageId, audioStorageId: audioId };
-          videoTTSId = await generateVideoForScene(tempScene);
-        }
+        // if (imageIds && imageIds.startImageId && audioId) {
+        //   await pollFileStatus(imageIds.startImageId);
+        //   await pollFileStatus(audioId);
+        //   const tempScene = { ...scene, imageStorageId: imageIds.startImageId, audioStorageId: audioId };
+        //   videoTTSId = await generateVideoForScene(tempScene);
+        // }
 
         setScenes(prevScenes => ({
           ...prevScenes,
           scenes: prevScenes.scenes.map(s => 
-            s.id === scene.id ? { ...s, imageStorageId: imageId, audioStorageId: audioId, videoTTSId: videoTTSId } : s
+            s.id === scene.id ? { ...s, imageStorageId: imageIds?.startImageId, audioStorageId: audioId, videoTTSId: videoTTSId } : s
           )
         }));
       };
@@ -110,22 +110,30 @@ export default function VideoPage() {
     }
   };
 
-  const generateImageForScene = async (scene: Scene): Promise<string | undefined> => {
+  const generateImageForScene = async (scene: Scene): Promise<{startImageId?: string, endImageId?: string} | undefined> => {
     setIsLoadingImages(true);
     try {
-      // const image: ImageOutput = await new Promise(resolve => setTimeout(() => {
-      //   resolve({ imageDataUri: imageTestData });
-      // }, 2000));
-      // const image = await generateImageGemini({ prompt: scene.imgPrompt, artStyle: artStyle });
-      const image = await generateImageFal({ prompt: scene.imgPrompt, artStyle: artStyle });
-      // const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
-      scene.imageUrl = image.imageDataUri;
+      const startImage = await generateImage({ prompt: scene.imgPromptStart, artStyle: artStyle });
+      scene.startImageUrl = startImage.imageDataUri;
 
-      if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {
-        const imageFile = await dataUriToToFile(image.imageDataUri, `scene-${scene.id}.png`);
+      const endImage = await generateImage({ prompt: scene.imgPromptEnd, artStyle: artStyle });
+      scene.endImageUrl = endImage.imageDataUri;
+
+      let startImageId, endImageId;
+
+      if (startImage.imageDataUri && startImage.imageDataUri.startsWith('data:')) {
+        const imageFile = await dataUriToToFile(startImage.imageDataUri, `scene-${scene.id}-start.png`);
         const imageSavedFile = await saveFile(imageFile, 'image');
-        return imageSavedFile.file_id;
+        startImageId = imageSavedFile.file_id;
       }
+
+      if (endImage.imageDataUri && endImage.imageDataUri.startsWith('data:')) {
+        const imageFile = await dataUriToToFile(endImage.imageDataUri, `scene-${scene.id}-end.png`);
+        const imageSavedFile = await saveFile(imageFile, 'image');
+        endImageId = imageSavedFile.file_id;
+      }
+      return { startImageId, endImageId };
+
     } catch (error) {
       console.error('Error generating image for scene:', error);
       toast({
@@ -141,15 +149,11 @@ export default function VideoPage() {
   const generateAudioForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingAudio(true);
     try {
-      // console.log('Generating audio for scene:', scene);
-      // const audio: { audioDataUri: string } = await new Promise(resolve => setTimeout(() => {
-      //   resolve({ audioDataUri: audioTestData });
-      // }, 3000));
       const audio = await generateSpeech({
         text: scene.narrator,
         voice: tone.voice,
         tonePrompt: tone.tonePrompt,
-      }); //, artStyle: artStyle });
+      });
       scene.audioUrl = audio.audioDataUri;
       if (audio.audioDataUri && audio.audioDataUri.startsWith('data:')) {
         const audioFile = await dataUriToToFile(audio.audioDataUri, `scene-${scene.id}.mp3`);
@@ -171,7 +175,6 @@ export default function VideoPage() {
   const generateVideoForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingVideo(true);
     try {
-      // Generar video con TTS y Captioning
       if (scene.imageStorageId && scene.audioStorageId && scene.narrator) {
         const video = await generateTTSCaptionedVideo(scene.imageStorageId, scene.audioStorageId, scene.narrator);
         console.log(`Video for scene ${scene.id} generated with ID: ${video.file_id}`);
@@ -200,11 +203,9 @@ export default function VideoPage() {
     try {
       
       const finalVideo = await mergeVideos(scenes.map(s => s.videoTTSId).filter((id): id is string => !!id), backgroundMusicId, 0.3);
-      // merge videos de todas las escenas
       console.log('Final video ID:', finalVideo);
 
       if (style.overlayUrl) {
-        // Añadir overlay
         const overlayResponse = await fetch(style.overlayUrl);
         const overlayBlob = await overlayResponse.blob();
         const fileName = style.overlayUrl.split('/').pop() || 'overlay';
@@ -264,7 +265,6 @@ export default function VideoPage() {
         }
       } catch (error) {
         console.error(`Error polling status for file ${fileId}:`, error);
-        // throw error;
       }
       maxRetries--;
     }
@@ -274,10 +274,10 @@ export default function VideoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl font-bold">Video Page</h1>
+        <h1 className="text-4xl font-bold">Video Multiple Images</h1>
       </div>
 
-      <ShortGenerator 
+      <ShortGeneratorMultipleImages 
         story={story}
         setStory={setStory}
         artStyle={artStyle}

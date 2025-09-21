@@ -10,3 +10,8 @@ export const imageAI = genkit({
   plugins: [googleAI()],
   model: 'googleai/imagen-4.0-fast-generate-001',
 });
+
+export const videoAI = genkit({
+  plugins: [googleAI()],
+  model: 'googleai/veo-3.0-fast-generate-001',
+});

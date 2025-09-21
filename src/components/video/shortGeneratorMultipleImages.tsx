@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { SceneList } from "@/components/video/scene-list";
+import { SceneListMultipleImages } from "@/components/video/scene-list-multiple-images";
 import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
@@ -35,7 +35,7 @@ interface shortGeneratorProps {
   setStyle: (style: Style) => void;
 }
 
-export function ShortGenerator({
+export function ShortGeneratorMultipleImages({
   story,
   setStory,
   artStyle,
@@ -167,7 +167,7 @@ export function ShortGenerator({
           {scenes && (
             <div>
               <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
-                <SceneList
+                <SceneListMultipleImages
                   scenes={scenes.scenes}
                   onScenesChange={handleScenesChange}
                   artStyle={artStyle}

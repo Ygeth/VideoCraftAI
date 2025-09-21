@@ -20,11 +20,6 @@ export const tones: Tone[] = [
     voice: 'Autonoe',
     tonePrompt: 'In a excited and nervous, engaging tone: ',
   },
-  {
-    name: 'F Friendly',
-    voice: 'Autonoe',
-    tonePrompt: 'In a friendly and engaging tone: ',
-  },
 ];
 
 export const defaultTone = tones[0];

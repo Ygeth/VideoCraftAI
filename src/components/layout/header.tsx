@@ -23,6 +23,16 @@ export function Header() {
               Video Panel
             </Link>
           </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/video-flow">
+              Video Flow
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/video-multiple-images">
+              Multiple Images
+            </Link>
+          </Button>
         </nav>
       </div>
     </header>

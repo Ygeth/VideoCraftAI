@@ -1,169 +1,109 @@
-'use client'
-
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+"use client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { SceneList } from "@/components/video/scene-list";
-import { GenerateVideoScriptOutput } from "@/ai/flows/generate-video-script";
-import { Loader2, Video } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Scene = GenerateVideoScriptOutput['scenes'][0];
-
-interface VeoFlowProps {
-    story: string;
-    setStory: (story: string) => void;
-    artStyle: string;
-    setArtStyle: (artStyle: string) => void;
-    isLoading: string | null;
-    handleTest: (flow: 'script' | 'preview' | 'video', data?: any) => void;
-    scriptOutput: GenerateVideoScriptOutput;
-    setScriptOutput: (output: GenerateVideoScriptOutput) => void;
-    selectedSceneIndex: number;
-    setSelectedSceneIndex: (index: number) => void;
-    videoUri: string;
+interface Scene {
+  id: number;
+  script: string;
+  firstImage?: File;
+  lastImage?: File;
 }
 
-export function VeoFlow({
-    story,
-    setStory,
-    artStyle,
-    setArtStyle,
-    isLoading,
-    handleTest,
-    scriptOutput,
-    setScriptOutput,
-    selectedSceneIndex,
-    setSelectedSceneIndex,
-    videoUri
-}: VeoFlowProps) {
+const SceneCard = ({ scene, onUpdate, onDelete }: { scene: Scene, onUpdate: (scene: Scene) => void, onDelete: (id: number) => void }) => {
+  const [script, setScript] = useState(scene.script);
 
-    const handleScenesChange = (newScenes: Scene[]) => {
-        setScriptOutput({ ...scriptOutput, scenes: newScenes });
-    }
+  const handleScriptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setScript(e.target.value);
+    onUpdate({ ...scene, script: e.target.value });
+  };
 
-    return (
-        <Accordion type="single" collapsible className="w-full space-y-4" defaultValue="item-1">
-            <AccordionItem value="item-1" className="border rounded-lg">
-                <AccordionTrigger className="p-6 font-headline text-lg">
-                    1. Test `generateVideoScript`
-                </AccordionTrigger>
-                <AccordionContent>
-                    <CardContent className="space-y-4 pt-6">
-                        <p className="text-muted-foreground">Input a story and an art style to generate a video script.</p>
-                        <div className="grid gap-2">
-                            <Label htmlFor="story">Story</Label>
-                            <Textarea
-                                id="story"
-                                placeholder="Enter a story"
-                                value={story}
-                                onChange={(e) => setStory(e.target.value)}
-                                rows={5}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="art-style-script">Art Style</Label>
-                            <Textarea
-                                id="art-style-script"
-                                placeholder="Enter the art style"
-                                value={artStyle}
-                                onChange={(e) => setArtStyle(e.target.value)}
-                                rows={8}
-                            />
-                        </div>
-                        <Button onClick={() => handleTest('script')} disabled={!!isLoading}>
-                            {isLoading === 'script' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Generate Script
-                        </Button>
-                    </CardContent>
-                </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2" className="border rounded-lg">
-                <AccordionTrigger className="p-6 font-headline text-lg">
-                    2. Test `generateImage`
-                </AccordionTrigger>
-                <AccordionContent>
-                    <CardContent className="space-y-4 pt-6">
-                        <p className="text-muted-foreground">
-                            Modify the Art Style and then generate images for the scenes below. The scenes are pre-populated but you can also generate a new script in Step 1.
-                        </p>
-                        <div className="grid gap-2">
-                            <Label htmlFor="art-style-image">Art Style</Label>
-                            <Textarea
-                                id="art-style-image"
-                                placeholder="Enter the art style"
-                                value={artStyle}
-                                onChange={(e) => setArtStyle(e.target.value)}
-                                rows={8}
-                            />
-                        </div>
-                        {scriptOutput && (
-                            <div className="mt-4">
-                                <h4 className="font-semibold mb-2">Scenes:</h4>
-                                <div className="rounded-md border bg-muted p-4">
-                                    <SceneList 
-                                        scenes={scriptOutput.scenes} 
-                                        onScenesChange={handleScenesChange}
-                                        artStyle={artStyle} 
-                                        aspectRatio='9:16' 
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3" className="border rounded-lg">
-                <AccordionTrigger className="p-6 font-headline text-lg">
-                    3. Test `generateVideoFromScene`
-                </AccordionTrigger>
-                <AccordionContent>
-                    <CardContent className="space-y-4 pt-6">
-                        <p className="text-muted-foreground">
-                            First, generate an image for a scene in Step 2. Then, select a scene below and click "Render Video" to animate it.
-                        </p>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Select a scene to render</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <RadioGroup
-                                    value={String(selectedSceneIndex)}
-                                    onValueChange={(val) => setSelectedSceneIndex(Number(val))}
-                                    className="gap-4"
-                                >
-                                    {scriptOutput.scenes.map((scene, index) => (
-                                        <div key={index} className="flex items-center space-x-2">
-                                            <RadioGroupItem value={String(index)} id={`scene-${index}`} />
-                                            <Label htmlFor={`scene-${index}`} className="flex-grow flex items-center gap-4 cursor-pointer">
-                                                {scene.imageUrl ?
-                                                    <img src={scene.imageUrl} alt={`Scene ${index + 1}`} className="w-10 h-10 object-cover rounded-md" />
-                                                    : <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-                                                        <Video className="h-5 w-5" />
-                                                    </div>
-                                                }
-                                                <span className="truncate">{scene.narrator}</span>
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </RadioGroup>
-                            </CardContent>
-                        </Card>
-                        <Button className="mt-4" onClick={() => handleTest('video', scriptOutput.scenes[selectedSceneIndex])} disabled={!!isLoading}>
-                            {isLoading === 'video' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Render Video
-                        </Button>
-                        {videoUri && (
-                            <div className="mt-4">
-                                <h4 className="font-semibold">Output:</h4>
-                                <video controls src={videoUri} className="mt-2 w-full max-w-lg rounded-md border bg-black" />
-                            </div>
-                        )}
-                    </CardContent>
-                </AccordionContent>
-            </AccordionItem>
-        </Accordion>
-    );
-}
+  return (
+    <Card className="w-full mb-4">
+      <CardHeader>
+        <CardTitle>Scene {scene.id}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid w-full items-center gap-4">
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor={`script-${scene.id}`}>Script</Label>
+            <Textarea id={`script-${scene.id}`} value={script} onChange={handleScriptChange} />
+          </div>
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor={`first-image-${scene.id}`}>First Image</Label>
+            <Input id={`first-image-${scene.id}`} type="file" onChange={(e) => handleFileChange(e, 'firstImage')} />
+          </div>
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor={`last-image-${scene.id}`}>Last Image</Label>
+            <Input id={`last-image-${scene.id}`} type="file" onChange={(e) => handleFileChange(e, 'lastImage')} />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="destructive" onClick={() => onDelete(scene.id)}>Delete Scene</Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export const VeoFlow = () => {
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+
+  const addScene = () => {
+    const newScene: Scene = {
+      id: scenes.length + 1,
+      script: "",
+    };
+    setScenes([...scenes, newScene]);
+  };
+
+  const updateScene = (updatedScene: Scene) => {
+    setScenes(scenes.map(scene => scene.id === updatedScene.id ? updatedScene : scene));
+  };
+
+  const deleteScene = (id: number) => {
+    setScenes(scenes.filter(scene => scene.id !== id));
+  };
+
+  const generateVideo = () => {
+    const formData = new FormData();
+    formData.append('scenes', JSON.stringify(scenes));
+    scenes.forEach(scene => {
+      if (scene.firstImage) {
+        formData.append(`firstImage-${scene.id}`, scene.firstImage);
+      }
+      if (scene.lastImage) {
+        formData.append(`lastImage-${scene.id}`, scene.lastImage);
+      }
+    });
+
+    fetch('/api/video-flow', {
+      method: 'POST',
+      body: formData,
+    })
+      .then(res => res.json())
+      .then(data => {
+        setGeneratedVideo(data.videoDataUri);
+      });
+  };
+
+  return (
+    <div>
+      {scenes.map(scene => (
+        <SceneCard key={scene.id} scene={scene} onUpdate={updateScene} onDelete={deleteScene} />
+      ))}
+      <Button onClick={addScene} className="mr-2">Add Scene</Button>
+      <Button onClick={generateVideo}>Generate Video</Button>
+      {generatedVideo && (
+        <div className="mt-4">
+          <h2 className="text-2xl font-bold mb-2">Generated Video</h2>
+          <video src={generatedVideo} controls className="w-full" />
+        </div>
+      )}
+    </div>
+  );
+};

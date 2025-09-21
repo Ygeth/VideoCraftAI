@@ -13,7 +13,7 @@ import defaultConfig from '@/lib/faceless-config-default.json';
 import {
     Accordion,
   } from '@/components/ui/accordion'
-import defaultArtStyle from '@/lib/art-style-default.json';
+import { defaultArtStyle } from '@/lib/artstyles';
 import { InspirationSection } from './config-sections/inspiration-section';
 import { ScriptSection } from './config-sections/script-section';
 import { VideoConfigSection } from './config-sections/video-config-section';
@@ -49,7 +49,7 @@ export function FacelessConfigForm({ onFormChange, onGenerateScript, isGeneratin
     resolver: zodResolver(formSchema),
     defaultValues: {
         ...defaultConfig,
-        art_style: defaultArtStyle.art_style,
+        art_style: defaultArtStyle.prompt,
         AI_AGENTS_NO_CODE_TOOLS_URL: process.env.NEXT_PUBLIC_AI_AGENTS_NO_CODE_TOOLS_URL || 'http://localhost:8000/',
         background_music_id: '',
         sample_audio_id: '',
@@ -76,7 +76,7 @@ export function FacelessConfigForm({ onFormChange, onGenerateScript, isGeneratin
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
+        <Accordion type="single" collapsible className="w-full" defaultValue="item-2">
             <InspirationSection form={form} />
             <ScriptSection form={form} onGenerateScript={onGenerateScript} isGeneratingScript={isGeneratingScript} story={story} />
             <VideoConfigSection form={form} />

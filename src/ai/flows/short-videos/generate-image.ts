@@ -24,8 +24,8 @@ const generateImageFlow = imageAI.defineFlow(
   },
   async input => {
     console.log('Generating image with Imagen:', input);
-    let finalPrompt = "aspectRatio: '9:16'" + input.prompt +
-      (input.artStyle ? " in the style of " + (input.artStyle) : "");
+    let finalPrompt = input.prompt +
+      (input.artStyle ? ". Art Style: " + (input.artStyle) : "");
     
     try {
       // Combine the art style and the specific scene prompt.
@@ -33,6 +33,7 @@ const generateImageFlow = imageAI.defineFlow(
         prompt: finalPrompt,
         config: {
           aspectRatio: '9:16', // 1:1, 9:16, 16:9, 4:3, 3:4
+          outputResolution: '1k', // 512, 1k, 2k
         },
       });
 

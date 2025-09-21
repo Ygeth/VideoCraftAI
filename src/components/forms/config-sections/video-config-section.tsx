@@ -5,8 +5,10 @@ import { UseFormReturn } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
+  FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +16,9 @@ import { Loader2, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { FormValues } from '../faceless-config-form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { artStyles } from '@/lib/artstyles';
+import { Textarea } from '@/components/ui/textarea';
 
 interface VideoConfigSectionProps {
   form: UseFormReturn<FormValues>;
@@ -87,6 +92,38 @@ export function VideoConfigSection({ form }: VideoConfigSectionProps) {
     <AccordionItem value="item-2">
       <AccordionTrigger>Video Configuration</AccordionTrigger>
       <AccordionContent className="space-y-8 pt-6">
+        <FormField
+          control={form.control}
+          name="art_style"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Art Style</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  const selectedStyle = artStyles.find(style => style.name === value);
+                  if (selectedStyle) {
+                    form.setValue('art_style', selectedStyle.prompt);
+                  }
+                }}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an art style" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {artStyles.map(style => (
+                    <SelectItem key={style.name} value={style.name}>
+                      {style.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Textarea {...field} rows={10} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormItem>
           <FormLabel>Background Music</FormLabel>
           <div className="flex items-center gap-2">

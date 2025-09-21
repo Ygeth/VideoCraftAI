@@ -11,12 +11,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {MediaPart} from 'genkit';
+import { generateImageGemini } from './short-videos/generate-image-gemini';
 
 const GenerateVideoFromSceneInputSchema = z.object({
   motionScene: z.string().describe('How the scene must narration for the scene.'),
   narration: z.string().describe('The narration for the scene.'),
   imageDataUri: z
     .string()
+    .optional()
     .describe(
       "A photo of the scene, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
@@ -48,7 +50,13 @@ const generateVideoFromSceneFlow = ai.defineFlow(
   async input => {
     console.log('Generating video from scene with Veo:', { motionScene: input.motionScene, narration: input.narration, aspectRatio: input.aspectRatio });
     try {
-      const match = input.imageDataUri.match(/^data:(image\/\w+);base64,(.*)$/);
+      let imageDataUri = input.imageDataUri;
+      if (!imageDataUri) {
+        const image = await generateImageGemini({ prompt: input.motionScene });
+        imageDataUri = image.imageDataUri;
+      }
+
+      const match = imageDataUri.match(/^data:(image\/\w+);base64,(.*)$/);
       if (!match) {
         console.error('Invalid image data URI format for Veo.');
         throw new Error('Invalid image data URI format.');

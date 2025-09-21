@@ -1,7 +1,8 @@
 import { Tone, tones } from './tones';
-
+import { artStyles } from './artstyles';
 export interface Style {
   name: string;
+  description?: string;
   tone: Tone;
   bgMusicUrl: string | null;
   overlayUrl: string | null;
@@ -11,24 +12,27 @@ export interface Style {
 export const styles: Style[] = [
   {
     name: 'Friendly - Aquarela',
+    description: 'A soft, warm, and inviting style with watercolor and colored pencil illustrations.',
     tone: tones.find(t => t.name === 'F Friendly')!,
     bgMusicUrl: '/music/bg_friendly_daydream.mp3',
     overlayUrl: null,
-    artStyle: 'soft watercolor and colored pencil illustration, gentle and warm color palette, dreamy atmosphere, intimate slice-of-life, sketchbook style, focus on character emotion, golden hour lighting',
+    artStyle: artStyles.find(a => a.code === 'watercolor')!.prompt,
   },
   {
-    name: 'Spooky',
+    name: 'Spooky - Gothic Ilustration',
+    description: "A dark, eerie scene with gothic horror elements, inspired by classic horror illustrations.",
     tone: tones.find(t => t.name === 'M Spooky')!,
     bgMusicUrl: '/music/bg_spooky.mp3',
-    overlayUrl: '/video/bg_1.mp4',
-    artStyle: "Scene: Highly cinematic with a moody, noir atmosphere, inspired by detective and crime thriller films from the 1970s and 1980s. The setting can be anything, from an interior room to a suburban street, depicted in a tense, suspenseful moment. Emphasize the following details:\n\n- **Lighting:** Strong directional lighting with deep shadows; use cool blue and teal color grading with subtle hints of warm light from lamps or windows. The lighting should cast dramatic shadows across the scene.\n- **Mood:** Mysterious, somber, and slightly surreal ambiance, evoking a sense of unease or suspense.\n- **Subjects:** Human figures should appear contemplative, searching, tense, or whatever the scene calls for.\n- **Color Palette:** Dominant cold blues and teals contrasted by occasional soft warm light from lamps or daylight through curtains. The overall tone should be desaturated and muted.\n- **Cinematic Framing:** Framed like a movie still, with careful composition and leading lines, add descriptions to add depth.\n- **Exterior Scenes:** Overcast skies, muted and overexposed daylight.\n\n**Style influences:** Denis Villeneuve, David Fincher, *Zodiac*, *Mindhunter*, *True Detective*, Gregory Crewdson, neo-noir photography.",
+    overlayUrl: null, // '/video/bg_1.mp4',
+    artStyle: artStyles.find(a => a.code === 'gothic')!.prompt,
   },
-    {
+  {
     name: 'Detective Serious - No Overlay',
+    description: "A highly cinematic scene with a moody, noir atmosphere, inspired by detective and crime thriller films from the 1970s and 1980s.",
     tone: tones.find(t => t.name === 'M Serious - Energetic')!,
     bgMusicUrl: '/music/bg_spooky.mp3',
     overlayUrl: null,
-    artStyle: "Scene: Highly cinematic with a moody, noir atmosphere, inspired by detective and crime thriller films from the 1970s and 1980s. The setting can be anything, from an interior room to a suburban street, depicted in a tense, suspenseful moment. Emphasize the following details:\n\n- **Lighting:** Strong directional lighting with deep shadows; use cool blue and teal color grading with subtle hints of warm light from lamps or windows. The lighting should cast dramatic shadows across the scene.\n- **Mood:** Mysterious, somber, and slightly surreal ambiance, evoking a sense of unease or suspense.\n- **Subjects:** Human figures should appear contemplative, searching, tense, or whatever the scene calls for.\n- **Color Palette:** Dominant cold blues and teals contrasted by occasional soft warm light from lamps or daylight through curtains. The overall tone should be desaturated and muted.\n- **Cinematic Framing:** Framed like a movie still, with careful composition and leading lines, add descriptions to add depth.\n- **Exterior Scenes:** Overcast skies, muted and overexposed daylight.\n\n**Style influences:** Denis Villeneuve, David Fincher, *Zodiac*, *Mindhunter*, *True Detective*, Gregory Crewdson, neo-noir photography.",
+    artStyle: artStyles.find(a => a.code === 'noir')!.prompt,
   },
 ];
 
