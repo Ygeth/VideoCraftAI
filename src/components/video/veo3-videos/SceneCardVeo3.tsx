@@ -19,14 +19,14 @@ export interface Scene {
 
 // SceneCardVeo3 Component
 export const SceneCardVeo3 = ({ scene, onUpdate, onDelete }: { scene: Scene, onUpdate: (scene: Scene) => void, onDelete: (id: number) => void }) => {
-  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [generatedVideo, setGeneratedVideo] = useState<string | null>("/video/veo3/default_reporterFlood.mp4");
   const [running, setRunning] = useState(false);
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultStyle.artStyle);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [style, setStyle] = useState<Style>(defaultStyle);
 
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'firstImage' | 'lastImage') => {
     if (e.target.files && e.target.files[0]) {
       onUpdate({ ...scene, [field]: e.target.files[0] });
@@ -91,7 +91,7 @@ export const SceneCardVeo3 = ({ scene, onUpdate, onDelete }: { scene: Scene, onU
           {generatedVideo && (
             <div className="mt-4">
               <h3 className="text-lg font-bold mb-2">Generated Video</h3>
-              <video src={generatedVideo} controls className="h-2/5" />
+              <video src={generatedVideo} controls className="h-96" />
             </div>
           )}
         </div>
