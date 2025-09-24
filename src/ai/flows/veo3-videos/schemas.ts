@@ -17,6 +17,7 @@ export const Veo3InputSchema = z.object({
   aspectRatio: z.string().optional().describe('The aspect ratio for the generated video, e.g., "9:16" or "16:9".').optional(),
   imgStartUrl: z.string().optional().describe('The URL of the start video for this scene.'),
   imgEndUrl: z.string().optional().describe('The URL of the end video for this scene.'),
+  improvePrompt: z.boolean().optional().describe('Whether to enhance the prompt for better video generation.').default(true),
 });
 export type Veo3Input = z.infer<typeof Veo3InputSchema>;
 

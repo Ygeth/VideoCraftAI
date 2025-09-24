@@ -7,7 +7,6 @@
  * - GenerateVideoFromSceneOutput - The return type for the function.
  */
 import { videoAI } from '@/ai/genkit';
-import { z } from 'zod';
 import { MediaPart } from 'genkit';
 import * as fs from 'fs';
 import { Readable } from 'stream';
@@ -16,6 +15,34 @@ import { SceneVeo3, Veo3Input, Veo3Output, Veo3InputSchema, Veo3OutputSchema } f
 export async function generateVideoFromScene(input: Veo3Input): Promise<Veo3Output> {
   return veo3SceneVideoGeneration(input);
 }
+
+const enhancePrompt = async (prompt: string): Promise<string> => {
+  // Call the veo3PromptEnhancer flow to enhance the prompt
+  const { veo3PromptEnhancer } = await import('./veo3-prompt-enchancer');
+  const result = await veo3PromptEnhancer({ prompt });
+  return result.enhancedPrompt;
+}
+
+const generateMediaPartFromFile = (input: Veo3Input): MediaPart => {
+  if (!input.imgStartUrl) {
+    return { media: { contentType: '', url: '' } };
+  }
+  const match = input.imgStartUrl.match(/^data:(image\/\w+);base64,(.*)$/);
+  if (!match) {
+    console.error('Invalid image data URI format for Veo.');
+    throw new Error('Invalid image data URI format.');
+  }
+  const mimeType = match[1];
+  const base64Data = match[2];
+  return {
+    media: {
+      url: `data:${mimeType};base64,${base64Data}`,
+      contentType: mimeType
+    }
+  };
+}
+
+// Define the Veo3 video generation flow
 export const veo3SceneVideoGeneration = videoAI.defineFlow(
   {
     name: "veo3SceneVideoGeneration",
@@ -23,21 +50,15 @@ export const veo3SceneVideoGeneration = videoAI.defineFlow(
     outputSchema: Veo3OutputSchema
   },
   async (input) => {
-    console.log('Generating video from scene with Veo3:', input);
+    console.log('Generating Veo3 video from scene with input:', input);
+    // Enhance the prompt if improvePrompt is true
+    if (input.improvePrompt) input.prompt = await enhancePrompt(input.prompt);
 
     // Check if input image is provided, if so, convert to ImageDTO
     // let image: ImageDTO = { imageBytes: '', mimeType: '' };
     let mediaPartImg: MediaPart = { media: { contentType: '', url: '' } };
     if (input.imgStartUrl) {
-      const match = input.imgStartUrl.match(/^data:(image\/\w+);base64,(.*)$/);
-      if (!match) {
-        console.error('Invalid image data URI format for Veo.');
-        throw new Error('Invalid image data URI format.');
-      }
-      const mimeType = match[1];
-      const base64Data = match[2];
-      mediaPartImg.media.url = `data:${mimeType};base64,${base64Data}`;
-      mediaPartImg.media.contentType = mimeType;
+      mediaPartImg = generateMediaPartFromFile(input);
       input.prompt = `Animate this image based on the following scene ${input.prompt}`;
     }
 
@@ -47,17 +68,18 @@ export const veo3SceneVideoGeneration = videoAI.defineFlow(
       //   { text: input.prompt },
       //   { media: mediaPartImg.media },
       // ],
+      system: `You are a professional video director and editor. Create a compelling and engaging video based on the user's prompt and the provided image. Ensure the video is visually appealing, coherent, and effectively conveys the intended message or story. Use cinematic techniques to enhance the storytelling, including appropriate transitions, pacing, and visual effects. The video should be suitable for a wide audience and adhere to community guidelines.`,
       prompt: input.prompt,
-      imagen: {
+      image: {
         bytesBase64Encoded: mediaPartImg.media.url?.split(',')[1] || '',
         mimeType: mediaPartImg.media.contentType || ''
       },
       config: {
-        aspectRatio: '9:16',
+        aspectRatio: input.aspectRatio || '9:16',
         // durationSeconds: 1,
         // fps: 24,
         // generateAudio: true,
-        resolution: "720p",
+        // resolution: "720p",
         personGeneration: 'allow_all',
         // personGeneration: 'allow_adult',
       },
