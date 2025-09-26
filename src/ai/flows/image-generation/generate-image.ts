@@ -9,8 +9,10 @@
  */
 
 import { imageAI } from '@/ai/genkit';
-import { ImageInput, ImageInputSchema } from '@/ai/flows/short-videos/schemas';
-import { ImageOutput, ImageOutputSchema } from '@/ai/flows/short-videos/schemas';
+import { ImageInput, ImageInputSchema } from '@/ai/flows/image-generation/schemas';
+import { ImageOutput, ImageOutputSchema } from '@/ai/flows/image-generation/schemas';
+import { promptEnhancerImagen } from '@/ai/flows/image-generation/prompt-enchancer-img';
+
 
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   return generateImageFlow(input);
@@ -26,6 +28,12 @@ const generateImageFlow = imageAI.defineFlow(
     console.log('Generating image with Imagen:', input);
     let finalPrompt = input.prompt +
       (input.artStyle ? ". Art Style: " + (input.artStyle) : "");
+    
+    const { enhancedPrompt } = await promptEnhancerImagen({ prompt: finalPrompt });
+    finalPrompt = enhancedPrompt ?? finalPrompt;
+
+    console.log("Final prompt for image generation: ", finalPrompt);
+
     
     try {
       // Combine the art style and the specific scene prompt.
@@ -43,7 +51,7 @@ const generateImageFlow = imageAI.defineFlow(
         throw new Error('Image generation failed to return a data URI.');
       }
 
-      return {imageDataUri};
+      return { imageDataUri };
     } catch (error) {
       console.error("Error in generateImageFlow: ", error);
       throw error;

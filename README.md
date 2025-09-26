@@ -2,13 +2,19 @@
 
 VideoCraft AI es una aplicación web construida con Next.js y Genkit que utiliza el poder de la inteligencia artificial para generar videos "faceless" (sin mostrar el rostro) para plataformas como TikTok, Instagram Reels y YouTube Shorts. La aplicación te permite transformar una historia o idea en un video completo, generando el guion, las imágenes, la narración y el video final de forma automatizada.
 
+## 📄 ToDo
+- Dividir la generacion de escenas en jobs. Story, ArtStyle, Titulo y thumbnail, Texto para redes sociales,..
+- Generacion de Thumbnail con Gemini:  https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/use-cases/video-thumbnail-generation/video_thumbnail_generation.ipynb
+- 
+
+
 ## ✨ Características Principales
 
 - **Generación de Guiones con IA**: A partir de una simple historia o idea, la IA crea un guion completo dividido en escenas.
 - **Inspiración de Contenido**: Obtiene ideas de historias populares desde Reddit para inspirar tus creaciones.
-- **Generación de Imágenes por Escena**: Cada escena del guion tiene un *prompt* de imagen detallado. Puedes generar imágenes únicas para cada una usando modelos como **Imagen 4** o **Gemini**.
+- **Generación de Escenas, Imagen y Audio**: Cada escena del guion tiene un *prompt* de imagen detallado. Puedes generar imágenes únicas para cada una usando modelos como **Seedream4**, **Imagen 4** o **Gemini**.
 - **Narración con Voces Sintéticas**: Convierte el texto del narrador de cada escena en audio usando **Gemini TTS** o el modelo autoalojado **Kokoro**.
-- **Animación de Video con IA**: Anima las imágenes estáticas para crear clips de video dinámicos utilizando el modelo **Veo**.
+- **Animación de Video con IA**: Anima las imágenes estáticas para crear clips de video dinámicos utilizando el modelo **Veo3**.
 - **Panel de Administración**: Un entorno de pruebas (`/admin`) para experimentar de forma aislada con cada uno de los flujos de IA (generación de guion, imágenes, audio, video, etc.).
 - **Interfaz Intuitiva**: Un asistente paso a paso que te guía desde la idea inicial hasta el video final.
 
@@ -19,8 +25,8 @@ VideoCraft AI es una aplicación web construida con Next.js y Genkit que utiliza
 - **Orquestación de IA**: [Genkit](https://firebase.google.com/docs/genkit)
 - **Modelos de IA**:
     - **Texto**: Google Gemini
-    - **Imagen**: Google Imagen 4, Gemini
-    - **Video**: Google Veo
+    - **Imagen**: Google Imagen 4, Gemini, Seedream4
+    - **Video**: Google Veo3
     - **Audio**: Google Gemini TTS, Kokoro TTS
 - **UI**: [React](https://react.dev/), [Shadcn/ui](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
 - **Generación de Video Programática**: [Remotion](https://www.remotion.dev/) (en desarrollo)

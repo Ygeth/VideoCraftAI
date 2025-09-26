@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
-import { generateImage } from '@/ai/flows/short-videos/generate-image';
-import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
-import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
+import { generateImage } from '@/ai/flows/image-generation/generate-image';
+import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-gemini';
+import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { downloadFile } from '@/services/aiAgentsTools';
 import {
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from '../ui/visually-hidden';
 import { Label } from '../ui/label';
-import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
 import { Tone } from '@/lib/tones';
 
 type Scene = GenerateScriptShortOutput['scenes'][0];

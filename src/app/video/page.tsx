@@ -2,19 +2,19 @@
 
 import React from 'react';
 import { ShortGenerator } from '@/components/video/shortGenerator';
-import { Scene, ImageOutput } from '@/ai/flows/short-videos/schemas';
+import { Scene, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { useState } from 'react';
 import defaultScenes from '@/lib/default-scenes.json';
-import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColorkeyOverlay, checkStatus } from '@/services/aiAgentsTools';
 import { audioTestData } from '@/lib/audio-test-data';
 import { imageTestData } from '@/lib/image-test-data';
 import { SelectLabel } from '@radix-ui/react-select';
-import { generateImageGemini } from '@/ai/flows/short-videos/generate-image-gemini';
-import { generateImage } from '@/ai/flows/short-videos/generate-image';
-import { generateImage as generateImageFal } from '@/ai/flows/short-videos/generate-image-fal';
-import { generateSpeech } from '@/ai/flows/short-videos/generate-speech-gemini';
+import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-gemini';
+import { generateImage } from '@/ai/flows/image-generation/generate-image';
+import { generateImage as generateImageFal } from '@/ai/flows/image-generation/generate-image-fal';
+import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { TaskQueue } from '@/lib/queue';
@@ -117,8 +117,8 @@ export default function VideoPage() {
       //   resolve({ imageDataUri: imageTestData });
       // }, 2000));
       // const image = await generateImageGemini({ prompt: scene.imgPrompt, artStyle: artStyle });
-      const image = await generateImageFal({ prompt: scene.imgPrompt, artStyle: artStyle });
-      // const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
+      // const image = await generateImageFal({ prompt: scene.imgPrompt, artStyle: artStyle });
+      const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
       scene.imageUrl = image.imageDataUri;
 
       if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {
@@ -274,7 +274,7 @@ export default function VideoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl font-bold">Video Page</h1>
+        <h1 className="text-4xl font-bold">Story Building</h1>
       </div>
 
       <ShortGenerator 

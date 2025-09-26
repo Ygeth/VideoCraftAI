@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { SceneCard } from './scene-card';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { tones, Tone } from '@/lib/tones';

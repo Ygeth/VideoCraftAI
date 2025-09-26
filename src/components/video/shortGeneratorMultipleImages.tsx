@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneListMultipleImages } from "@/components/video/scene-list-multiple-images";
-import { GenerateScriptShortOutput } from '@/ai/flows/short-videos/generate-script-short-gemini';
+import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

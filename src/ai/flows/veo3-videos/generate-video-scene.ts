@@ -17,9 +17,9 @@ export async function generateVideoFromScene(input: Veo3Input): Promise<Veo3Outp
 }
 
 const enhancePrompt = async (prompt: string): Promise<string> => {
-  // Call the veo3PromptEnhancer flow to enhance the prompt
-  const { veo3PromptEnhancer } = await import('./veo3-prompt-enchancer');
-  const result = await veo3PromptEnhancer({ prompt });
+  // Call the promptEnhancerVeo3 flow to enhance the prompt
+  const { promptEnhancerVeo3 } = await import('./prompt-enchancer-veo3');
+  const result = await promptEnhancerVeo3({ prompt });
   return result.enhancedPrompt;
 }
 

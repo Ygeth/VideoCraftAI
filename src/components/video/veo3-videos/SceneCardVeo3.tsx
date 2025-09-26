@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RectangleHorizontal, RectangleVertical, Sparkles } from "lucide-react";
 import { generateVideoFromScene } from "@/ai/flows/veo3-videos/generate-video-scene";
-import { veo3PromptEnhancer } from "@/ai/flows/veo3-videos/veo3-prompt-enchancer";
+import { promptEnhancerVeo3 } from "@/ai/flows/veo3-videos/prompt-enchancer-veo3";
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { Veo3Input } from "@/ai/flows/veo3-videos/schemas";
 
@@ -92,7 +92,7 @@ export const SceneCardVeo3 = ({ scene, onUpdate, onDelete }: { scene: Scene, onU
   const handleImprovePrompt = async () => {
     setIsImprovingPrompt(true);
     try {
-      const { enhancedPrompt } = await veo3PromptEnhancer({ prompt: scene.script });
+      const { enhancedPrompt } = await promptEnhancerVeo3({ prompt: scene.script });
       onUpdate({ ...scene, script: enhancedPrompt });
     } catch (error) {
       console.error('Error improving prompt:', error);

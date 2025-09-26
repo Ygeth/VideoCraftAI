@@ -10,8 +10,8 @@
 
 import { ai } from '@/ai/genkit';
 import { fal } from "@fal-ai/client";
-import { ImageInput, ImageInputSchema } from '@/ai/flows/short-videos/schemas';
-import { ImageOutput, ImageOutputSchema } from '@/ai/flows/short-videos/schemas';
+import { ImageInput, ImageInputSchema } from '@/ai/flows/image-generation/schemas';
+import { ImageOutput, ImageOutputSchema } from '@/ai/flows/image-generation/schemas';
 
 // Helper to convert aspect ratio string to fal's image_size object
 function mapAspectRatioToImageSize(aspectRatio?: string) {

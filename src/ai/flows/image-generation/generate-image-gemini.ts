@@ -9,8 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { ImageInput, ImageInputSchema } from '@/ai/flows/short-videos/schemas';
-import { ImageOutput, ImageOutputSchema } from '@/ai/flows/short-videos/schemas';
+import { ImageInput, ImageInputSchema } from '@/ai/flows/image-generation/schemas';
+import { ImageOutput, ImageOutputSchema } from '@/ai/flows/image-generation/schemas';
 
 export async function generateImageGemini(input: ImageInput): Promise<ImageOutput> {
   return generateImageGeminiFlow(input);

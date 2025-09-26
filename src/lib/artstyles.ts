@@ -13,7 +13,7 @@ export const artStyles: ArtStyle[] = [
   {
     code: 'gothic',
     name: 'Gothic Illustration',
-    prompt: "Gothic horror illustration, meticulously detailed in the style of Gustave Doré's intricate wood engravings and the macabre whimsy of Edward Gorey. The scene features cross-hatching so fine it creates a texture akin to woven fabric, with a focus on dramatic chiaroscuro lighting that casts immense, oppressive shadows. Use a stark black and white palette, where pure black consumes most of the frame, and the white serves to highlight grotesque details. The composition should convey an overwhelming sense of scale, with a lone figure dwarfed by a monstrous, gothic cathedral. Include symbolism of decay and dread, such as crumbling gargoyles, twisted tree branches, and creeping vines. The overall atmosphere should be profoundly ominous, atmospheric, and melancholic, capturing the terror of the unseen."
+    prompt: "Gothic horror illustration, meticulously detailed in the style of Gustave Doré's intricate wood engravings and the macabre whimsy of Edward Gorey. The scene features cross-hatching so fine it creates a texture akin to woven fabric, with a focus on dramatic colored lighting that casts immense, oppressive shadows. The composition should convey an overwhelming sense of scale. The overall atmosphere should be profoundly ominous, atmospheric, and melancholic, capturing the terror of the unseen."
   },
   {
     code: 'watercolor',
@@ -23,7 +23,7 @@ export const artStyles: ArtStyle[] = [
   {
     code: 'anime',
     name: 'Anime',
-    prompt: 'A vibrant and detailed anime style, with expressive characters, dynamic action poses, and beautifully rendered backgrounds. Emphasize sharp lines, bright colors, and dramatic lighting effects. Style influences: Studio Ghibli, Makoto Shinkai, modern shonen anime.'
+    prompt: 'A vibrant and detailed anime style, with expressive characters, dynamic action poses, and beautifully rendered backgrounds. Emphasize sharp lines, bright colors, and dramatic lighting effects. Style influences: Your Name by Makoto Shinkai, modern shonen anime.'
   },
   {
     code: 'pixar',
@@ -33,7 +33,7 @@ export const artStyles: ArtStyle[] = [
   {
     code: 'cyberpunk',
     name: 'Cyberpunk',
-    prompt: 'A futuristic and gritty cyberpunk aesthetic. Neon-drenched cityscapes with towering skyscrapers, flying vehicles, and a dense, rainy atmosphere. Characters feature cybernetic enhancements and futuristic fashion. Strong use of contrast between light and shadow. Style influences: *Blade Runner*, *Cyberpunk 2077*, *Ghost in the Shell*.'
+    prompt: 'A futuristic and gritty cyberpunk aesthetic. Neon-drenched cityscapes with towering skyscrapers. Characters feature cybernetic enhancements and futuristic fashion. Strong use of contrast between light and shadow. Style influences: *Blade Runner*, *Cyberpunk 2077*, *Ghost in the Shell*.'
   },
 
 ];

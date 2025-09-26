@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {MediaPart} from 'genkit';
-import { generateImageGemini } from './short-videos/generate-image-gemini';
+import { generateImageGemini } from './image-generation/generate-image-gemini';
 
 const GenerateVideoFromSceneInputSchema = z.object({
   motionScene: z.string().describe('How the scene must narration for the scene.'),

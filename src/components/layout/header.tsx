@@ -20,7 +20,7 @@ export function Header() {
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/video">
-              Video Panel
+              Story Building
             </Link>
           </Button>
           <Button variant="ghost" asChild>
