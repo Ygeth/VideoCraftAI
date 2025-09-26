@@ -51,7 +51,7 @@ const PromptEnhancerFlowImagen = ai.defineFlow(
 );
 
 export const promptEnhancerPromptImagen = ai.definePrompt({
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-2.5-flash-lite',
   name: 'promptEnhancerPromptImagen',
   input: { schema: PromptEnhancerInputSchemaImagen },
   output: { schema: PromptEnhancerOutputSchemaImagen },
@@ -68,7 +68,7 @@ Return only the enhanced prompt as a string.
 
 //! Not using Guidelines, the above prompt is sufficient
 // const promptEnhancerGuidelinePromptImagen = ai.definePrompt({
-//   model: 'googleai/gemini-2.5-flash',
+//   model: 'googleai/gemini-2.5-flash-lite',
 //   name: 'promptEnhancerPromptImagen',
 //   input: { schema: PromptEnhancerInputSchemaImagen },
 //   output: { schema: PromptEnhancerOutputSchemaImagen },

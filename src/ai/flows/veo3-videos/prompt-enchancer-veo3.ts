@@ -51,7 +51,7 @@ const PromptEnhancerFlowVeo3 = ai.defineFlow(
 );
 
 const promptEnhancerPromptVeo3 = ai.definePrompt({
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-2.5-flash-lite',
   name: 'promptEnhancerPromptVeo3',
   input: { schema: PromptEnhancerInputSchemaVeo3 },
   output: { schema: PromptEnhancerOutputSchemaVeo3 },

@@ -11,6 +11,8 @@ import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArtStyle, artStyles } from '@/lib/artstyles';
+import { useState } from "react";
+import { RectangleHorizontal, RectangleVertical, Square, Sparkles } from "lucide-react";
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -55,6 +57,7 @@ export function ShortGenerator({
   style,
   setStyle
 }: shortGeneratorProps) {
+  const [aspectRatio, setAspectRatio] = useState('1:1');
 
   const handleScenesChange = (newScenes: Scene[]) => {
     setScenes({ ...scenes, scenes: newScenes });
@@ -93,35 +96,67 @@ export function ShortGenerator({
 
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label>Style Preset</Label>
-            <Select value={style.name} onValueChange={handleStyleChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a style" />
-              </SelectTrigger>
-              <SelectContent>
-                {styles.map(s => (
-                  <SelectItem key={s.name} value={s.name}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Art Style Preset</Label>
-            <Select value={selectedArtStyle ? selectedArtStyle.name : ""} onValueChange={handleArtStyleChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an art style" />
-              </SelectTrigger>
-              <SelectContent>
-                {artStyles.map(a => (
-                  <SelectItem key={a.name} value={a.name}>
-                    {a.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex space-x-4 justify-start">
+            <div >
+              <Label>Style Preset</Label>
+              <Select value={style.name} onValueChange={handleStyleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {styles.map(s => (
+                    <SelectItem key={s.name} value={s.name}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div >
+              <Label>Art Style Preset</Label>
+              <Select value={selectedArtStyle ? selectedArtStyle.name : ""} onValueChange={handleArtStyleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an art style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {artStyles.map(a => (
+                    <SelectItem key={a.name} value={a.name}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label>Aspect Ratio</Label>
+              <div className="flex space-x-2">
+                <Button
+                  variant={aspectRatio === '1:1' ? 'secondary' : 'outline'}
+                  onClick={() => setAspectRatio('1:1')}
+                  className="flex items-center space-x-2"
+                >
+                  <Square className="h-5 w-5" />
+                  <span>1:1</span>
+                </Button>
+                <Button
+                  variant={aspectRatio === '9:16' ? 'secondary' : 'outline'}
+                  onClick={() => setAspectRatio('9:16')}
+                  className="flex items-center space-x-2"
+                >
+                  <RectangleVertical className="h-5 w-5" />
+                  <span>9:16</span>
+                </Button>
+                <Button
+                  variant={aspectRatio === '16:9' ? 'secondary' : 'outline'}
+                  onClick={() => setAspectRatio('16:9')}
+                  className="flex items-center space-x-2"
+                >
+                  <RectangleHorizontal className="h-5 w-5" />
+                  <span>16:9</span>
+                </Button>
+              </div>
+            </div>
+            
           </div>
           <div className="grid gap-2">
             <Label htmlFor="story-imagenes">Guion (Story)</Label>
@@ -171,7 +206,7 @@ export function ShortGenerator({
                   scenes={scenes.scenes}
                   onScenesChange={handleScenesChange}
                   artStyle={artStyle}
-                  aspectRatio='9:16'
+                  aspectRatio={aspectRatio}
                   tone={tone}
                   setTone={setTone}
                 />

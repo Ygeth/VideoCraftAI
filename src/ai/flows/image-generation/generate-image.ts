@@ -27,7 +27,7 @@ const generateImageFlow = imageAI.defineFlow(
   async input => {
     console.log('Generating image with Imagen:', input);
     let finalPrompt = input.prompt +
-      (input.artStyle ? ". Art Style: " + (input.artStyle) : "");
+      (input.artStyle ? ". \n Keep the Art Style: " + (input.artStyle) : "");
     
     const { enhancedPrompt } = await promptEnhancerImagen({ prompt: finalPrompt });
     finalPrompt = enhancedPrompt ?? finalPrompt;
@@ -40,7 +40,7 @@ const generateImageFlow = imageAI.defineFlow(
       const {media} = await imageAI.generate({
         prompt: finalPrompt,
         config: {
-          aspectRatio: '9:16', // 1:1, 9:16, 16:9, 4:3, 3:4
+          aspectRatio: input?.aspectRatio ?? '1:1', // 1:1, 9:16, 16:9, 4:3, 3:4
           outputResolution: '1k', // 512, 1k, 2k
         },
       });
