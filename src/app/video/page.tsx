@@ -75,25 +75,25 @@ export default function ShortVideosPage() {
       setIsLoading('Generating images, audio and videos...');
       
       const imageQueue = new TaskQueue(6000); // 10 images per minute
-      const audioQueue = new TaskQueue(1000); // No limit specified, using 1 second
-      const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
+      // const audioQueue = new TaskQueue(1000); // No limit specified, using 1 second
+      // const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
 
       const processScene = async (scene: Scene) => {
-        const imageId = await generateImageForScene(scene);
-        const audioId = await generateAudioForScene(scene);
+        const imageUrl = await generateImageForScene(scene);
+        // const audioId = await generateAudioForScene(scene);
 
-        let videoTTSId: string | undefined;
-        if (imageId && audioId) {
-          await pollFileStatus(imageId);
-          await pollFileStatus(audioId);
-          const tempScene = { ...scene, imageStorageId: imageId, audioStorageId: audioId };
-          videoTTSId = await generateVideoForScene(tempScene);
-        }
+        // let videoTTSId: string | undefined;
+        // if (processScene) {
+          // await pollFileStatus(processScene);
+          // await pollFileStatus(audioId);
+          // const tempScene = { ...scene, imageStorageId: imageId, audioStorageId: audioId };
+          // videoTTSId = await generateVideoForScene(tempScene);
+        // }
 
         setScenes(prevScenes => ({
           ...prevScenes,
           scenes: prevScenes.scenes.map(s => 
-            s.id === scene.id ? { ...s, imageStorageId: imageId, audioStorageId: audioId, videoTTSId: videoTTSId } : s
+            s.id === scene.id ? { ...s } : s
           )
         }));
       };
@@ -103,20 +103,20 @@ export default function ShortVideosPage() {
       });
 
       // Añadir Musica de fondo
-      if (style.bgMusicUrl) {
-        const bgMusicResponse = await fetch(style.bgMusicUrl);
-        const bgMusicBlob = await bgMusicResponse.blob();
-        const fileName = style.bgMusicUrl.split('/').pop() || 'bg_music';
-        const bgMusicFile = new File([bgMusicBlob], fileName, { type: bgMusicBlob.type });
-        const savedBgMusic = await saveFile(bgMusicFile, 'audio');
+      // if (style.bgMusicUrl) {
+      //   const bgMusicResponse = await fetch(style.bgMusicUrl);
+      //   const bgMusicBlob = await bgMusicResponse.blob();
+      //   const fileName = style.bgMusicUrl.split('/').pop() || 'bg_music';
+      //   const bgMusicFile = new File([bgMusicBlob], fileName, { type: bgMusicBlob.type });
+      //   const savedBgMusic = await saveFile(bgMusicFile, 'audio');
 
-        await pollFileStatus(savedBgMusic.file_id);
-        setBackgroundMusicId(savedBgMusic.file_id);
-      } else {
-        setBackgroundMusicId(undefined);
-      }
+      //   await pollFileStatus(savedBgMusic.file_id);
+      //   setBackgroundMusicId(savedBgMusic.file_id);
+      // } else {
+      //   setBackgroundMusicId(undefined);
+      // }
 
-      toast({ title: 'Images, Audio and Scene Videos Generated Successfully' });
+      toast({ title: 'Images and Scene Videos Generated Successfully' });
 
     } catch (error) {
       console.error('Error generating script, images, or audio:', error);
@@ -136,11 +136,12 @@ export default function ShortVideosPage() {
       const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
       scene.imageUrl = image.imageDataUri;
 
-      if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {
-        const imageFile = await dataUriToToFile(image.imageDataUri, `scene-${scene.id}.png`);
-        const imageSavedFile = await saveFile(imageFile, 'image');
-        return imageSavedFile.file_id;
-      }
+      return image.imageDataUri;
+      // if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {
+      //   const imageFile = await dataUriToToFile(image.imageDataUri, `scene-${scene.id}.png`);
+      //   const imageSavedFile = await saveFile(imageFile, 'image');
+      //   return imageSavedFile.file_id;
+      // }
     } catch (error) {
       console.error('Error generating image for scene:', error);
       toast({
@@ -258,12 +259,12 @@ export default function ShortVideosPage() {
     }
   };
 
-  const pollFileStatus = async (fileId: string) => {
+  const pollFileStatus = async (processScene: string) => {
     let status = '';
     let maxRetries = 10; // Limit to avoid infinite loops
     while (status !== 'ready' && maxRetries > 0) {
       try {
-        status = await checkStatus(fileId);
+        status = await checkStatus(processScene);
         if (status === 'failed' || status === 'not_found') {
           throw new Error(`File processing failed or file not found. Status: ${status}`);
         }
@@ -271,7 +272,7 @@ export default function ShortVideosPage() {
           await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before polling again
         }
       } catch (error) {
-        console.error(`Error polling status for file ${fileId}:`, error);
+        console.error(`Error polling status for file ${processScene}:`, error);
         // throw error;
       }
       maxRetries--;

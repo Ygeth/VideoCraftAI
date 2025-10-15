@@ -5,8 +5,7 @@ import '@/ai/flows/generate-video-from-scene.ts';
 import '@/ai/flows/preview-with-ai-suggestions.ts';
 import '@/ai/flows/generate-video-script.ts';
 import '@/ai/flows/generate-narration-audio.ts';
-import '@/ai
-/flows/generate-audio-kokoro.ts';
+import '@/ai/flows/generate-audio-kokoro.ts';
 import '@/ai/flows/image-generation/generate-image-fal';
 import '@/ai/flows/image-generation/generate-image-gemini';
 import '@/ai/flows/image-generation/generate-image';
