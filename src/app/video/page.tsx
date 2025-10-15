@@ -8,12 +8,7 @@ import defaultScenes from '@/lib/default-scenes.json';
 import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColorkeyOverlay, checkStatus } from '@/services/aiAgentsTools';
-import { audioTestData } from '@/lib/audio-test-data';
-import { imageTestData } from '@/lib/image-test-data';
-import { SelectLabel } from '@radix-ui/react-select';
-import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-gemini';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
-import { generateImage as generateImageFal } from '@/ai/flows/image-generation/generate-image-fal';
 import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
 import { generateCharacter, GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { tones, defaultTone, Tone } from '@/lib/tones';
@@ -50,8 +45,30 @@ export default function ShortVideosPage() {
   const handleGenerateCharacter = async () => {
     setIsLoading('Generating character...');
     try {
-      const characterOutput = await generateCharacter({ story, artStyle });
-      setCharacter(characterOutput);
+      // 1. Generate character details (text)
+      const characterDetails = await generateCharacter({ story, artStyle });
+
+      // 2. Build a prompt for the image from the details
+      const imagePrompt = `Full-body portrait of a character named ${characterDetails.name}.
+        Description: ${characterDetails.description}.
+        Clothing: ${characterDetails.clothing}.
+        Art Style: ${artStyle}.`;
+
+      // 3. Generate the image
+      const image = await generateImage({
+        prompt: imagePrompt,
+        artStyle: artStyle,
+        aspectRatio: '1:1',
+      });
+      
+      // 4. Combine text and image data
+      const fullCharacter: GenerateCharacterOutput = {
+          ...characterDetails,
+          imageDataUri: image.imageDataUri,
+      }
+
+      setCharacter(fullCharacter);
+
       toast({ title: 'Character Generated Successfully' });
     } catch (error) {
       console.error('Error generating character:', error);
@@ -69,54 +86,43 @@ export default function ShortVideosPage() {
     setIsLoading('Generating script...');
     try {
       const scriptOutput: GenerateScriptShortOutput = await generateScriptShort({ story, artStyle });
-      setScenes(scriptOutput);
+      
+      // Assign a unique ID to each scene for keying purposes in React
+      const scenesWithIds = scriptOutput.scenes.map(scene => ({
+        ...scene,
+        id: Math.random().toString(36).substring(7),
+      }));
+
+      const finalOutput = { scenes: scenesWithIds };
+      setScenes(finalOutput);
+
       toast({ title: 'Script Scenes Generated Successfully' });
 
-      setIsLoading('Generating images, audio and videos...');
+      setIsLoading('Generating images and audio...');
       
       const imageQueue = new TaskQueue(6000); // 10 images per minute
-      // const audioQueue = new TaskQueue(1000); // No limit specified, using 1 second
-      // const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
-
+      
       const processScene = async (scene: Scene) => {
         const imageUrl = await generateImageForScene(scene);
-        // const audioId = await generateAudioForScene(scene);
-
-        // let videoTTSId: string | undefined;
-        // if (processScene) {
-          // await pollFileStatus(processScene);
-          // await pollFileStatus(audioId);
-          // const tempScene = { ...scene, imageStorageId: imageId, audioStorageId: audioId };
-          // videoTTSId = await generateVideoForScene(tempScene);
-        // }
+        const audioId = await generateAudioForScene(scene);
+        
+        // This is a simplified flow. In a real-world scenario, you might want to wait
+        // for image/audio to be processed before generating the video for that scene.
+        // For now, we'll just update the state as things complete.
 
         setScenes(prevScenes => ({
           ...prevScenes,
           scenes: prevScenes.scenes.map(s => 
-            s.id === scene.id ? { ...s } : s
+            s.id === scene.id ? { ...s, imageUrl, audioStorageId: audioId } : s
           )
         }));
       };
 
-      scriptOutput.scenes.forEach(scene => {
+      finalOutput.scenes.forEach(scene => {
         imageQueue.add(() => processScene(scene));
       });
 
-      // Añadir Musica de fondo
-      // if (style.bgMusicUrl) {
-      //   const bgMusicResponse = await fetch(style.bgMusicUrl);
-      //   const bgMusicBlob = await bgMusicResponse.blob();
-      //   const fileName = style.bgMusicUrl.split('/').pop() || 'bg_music';
-      //   const bgMusicFile = new File([bgMusicBlob], fileName, { type: bgMusicBlob.type });
-      //   const savedBgMusic = await saveFile(bgMusicFile, 'audio');
-
-      //   await pollFileStatus(savedBgMusic.file_id);
-      //   setBackgroundMusicId(savedBgMusic.file_id);
-      // } else {
-      //   setBackgroundMusicId(undefined);
-      // }
-
-      toast({ title: 'Images and Scene Videos Generated Successfully' });
+      toast({ title: 'Image and audio generation queued.' });
 
     } catch (error) {
       console.error('Error generating script, images, or audio:', error);
@@ -133,15 +139,15 @@ export default function ShortVideosPage() {
   const generateImageForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingImages(true);
     try {
-      const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
+      const image = await generateImage({ 
+        prompt: scene.imgPrompt,
+        artStyle: artStyle,
+        aspectRatio: "9:16",
+        characterImageDataUri: character?.imageDataUri
+      });
       scene.imageUrl = image.imageDataUri;
-
       return image.imageDataUri;
-      // if (image.imageDataUri && image.imageDataUri.startsWith('data:')) {
-      //   const imageFile = await dataUriToToFile(image.imageDataUri, `scene-${scene.id}.png`);
-      //   const imageSavedFile = await saveFile(imageFile, 'image');
-      //   return imageSavedFile.file_id;
-      // }
+
     } catch (error) {
       console.error('Error generating image for scene:', error);
       toast({
@@ -152,6 +158,7 @@ export default function ShortVideosPage() {
     } finally {
       setIsLoadingImages(false);
     }
+    return undefined;
   }
 
   const generateAudioForScene = async (scene: Scene): Promise<string | undefined> => {
@@ -178,6 +185,7 @@ export default function ShortVideosPage() {
     } finally {
       setIsLoadingAudio(false);
     }
+    return undefined;
   }
 
   const generateVideoForScene = async (scene: Scene): Promise<string | undefined> => {
@@ -204,6 +212,7 @@ export default function ShortVideosPage() {
     }finally {
       setIsLoadingVideo(false);
     }
+    return undefined;
   };
   
 

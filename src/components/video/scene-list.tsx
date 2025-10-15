@@ -8,6 +8,7 @@ import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { tones, Tone } from '@/lib/tones';
+import { GenerateCharacterOutput } from '@/ai/flows/generate-character';
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 type Scenes = GenerateScriptShortOutput['scenes'];
@@ -19,9 +20,10 @@ interface SceneListProps {
   aspectRatio: string;
   tone: Tone;
   setTone: (tone: Tone) => void;
+  character: GenerateCharacterOutput | null;
 }
 
-export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone }: SceneListProps) {
+export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character }: SceneListProps) {
   const [_scenes, _setScenes] = useState(scenes);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
 
   const handleAddScene = () => {
     const newScene: Scene = {
+        id: Math.random().toString(36).substring(7),
         narrator: 'New scene narration.',
         imgPrompt: 'A new image prompt.',
         motionScene: 'Static scene, no movement.',
@@ -84,7 +87,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
       </div>
       {_scenes.map((scene, index) => (
         <SceneCard
-          key={index}
+          key={scene.id || index}
           scene={scene}
           sceneIndex={index}
           artStyle={artStyle}
@@ -92,6 +95,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
           tone={tone}
           onDelete={handleDeleteScene}
           onUpdate={handleUpdateScene}
+          character={character}
         />
       ))}
       <Button onClick={handleAddScene} variant="outline" className="w-full">

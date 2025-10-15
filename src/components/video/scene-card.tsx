@@ -7,8 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
-import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-gemini';
-import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { downloadFile } from '@/services/aiAgentsTools';
 import {
@@ -20,6 +18,7 @@ import {
 import { VisuallyHidden } from '../ui/visually-hidden';
 import { Label } from '../ui/label';
 import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { Tone } from '@/lib/tones';
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
@@ -32,9 +31,10 @@ interface SceneCardProps {
   tone: Tone;
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
+  character: GenerateCharacterOutput | null;
 }
 
-export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate, character }: SceneCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
@@ -81,6 +81,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
         prompt: scene.imgPrompt,
         artStyle: artStyle,
         aspectRatio: aspectRatio,
+        characterImageDataUri: character?.imageDataUri,
       });
       onUpdate(sceneIndex, { ...scene, imageUrl: imageDataUri });
     } catch (error) {
@@ -92,57 +93,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
       });
     } finally {
       setIsGeneratingImage(false);
-    }
-  };
-
-  const handleGenerateImageGemini = async () => {
-    setIsGeneratingImage(true);
-    try {
-      const {imageDataUri} = await generateImageGemini({
-        prompt: scene.imgPrompt,
-        artStyle: artStyle,
-        aspectRatio: aspectRatio,
-      });
-      onUpdate(sceneIndex, {...scene, imageUrl: imageDataUri});
-    } catch (error) {
-      console.error('Failed to generate image with Gemini:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Image generation failed (Gemini)',
-        description:
-          'Could not generate the image for this scene. Please try again.',
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
-  const handleGenerateAudio = async () => {
-    if (!scene.narrator) {
-      toast({
-        variant: 'destructive',
-        title: 'Narration is empty',
-        description: 'Please provide narration text to generate audio.',
-      });
-      return;
-    }
-    setIsGeneratingAudio(true);
-    try {
-      const { audioDataUri } = await generateSpeech({ 
-        text: scene.narrator,
-        voice: tone.voice,
-        tonePrompt: tone.tonePrompt,
-      });
-      onUpdate(sceneIndex, { ...scene, audioUrl: audioDataUri });
-    } catch (error) {
-      console.error('Failed to generate audio:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Audio generation failed',
-        description: 'Could not generate audio for this scene. Please try again.',
-      });
-    } finally {
-      setIsGeneratingAudio(false);
     }
   };
 
@@ -228,17 +178,9 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
             </div>
           <div className="flex items-center justify-between mt-auto pt-2 gap-2">
               <div className="flex gap-2 flex-wrap">
-                <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="outline" size="sm">
-                  {isGeneratingAudio ? <Loader2 className="animate-spin" /> : <AudioLines />}
-                  Generate Audio
-                </Button>
                 <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
                   {isGeneratingImage ? <Loader2 className="animate-spin" /> : <ImageIcon />}
-                  Image (Imagen)
-                </Button>
-                <Button onClick={handleGenerateImageGemini} disabled={isGeneratingImage} variant="outline" size="sm">
-                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                  Image (Gemini)
+                  Generate Image
                 </Button>
                 {scene.videoTTSId && (
                   <Button onClick={handleDownloadVideo} variant="outline" size="sm">
