@@ -216,7 +216,7 @@ export default function ShortVideosPage() {
         const overlayResponse = await fetch(style.overlayUrl);
         const overlayBlob = await overlayResponse.blob();
         const fileName = style.overlayUrl.split('/').pop() || 'overlay';
-        const overlayFile = new File([blob], fileName, { type: overlayBlob.type });
+        const overlayFile = new File([overlayBlob], fileName, { type: overlayBlob.type });
         const savedOverlay = await saveFile(overlayFile, 'video');
 
         await pollFileStatus(finalVideo.file_id);

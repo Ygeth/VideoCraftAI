@@ -8,8 +8,9 @@
  * - GenerateCharacterOutput - The return type for the generateCharacter function.
  */
 
-import { ai, imageAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { generateImage } from './image-generation/generate-image';
 
 const GenerateCharacterInputSchema = z.object({
   story: z.string().describe('The story or theme to base the character on.'),
@@ -29,9 +30,56 @@ const GenerateCharacterOutputSchema = CharacterDetailsSchema.extend({
 });
 export type GenerateCharacterOutput = z.infer<typeof GenerateCharacterOutputSchema>;
 
+
 export async function generateCharacter(input: GenerateCharacterInput): Promise<GenerateCharacterOutput> {
-  return generateCharacterFlow(input);
+  const characterDetails = await generateCharacterDetailsFlow(input);
+  if (!characterDetails) {
+    throw new Error('Failed to generate character details.');
+  }
+
+  const imagePrompt = `Full-body portrait of a character named ${characterDetails.name}.
+Description: ${characterDetails.description}.
+Clothing: ${characterDetails.clothing}.
+Art Style: ${input.artStyle}.`;
+  
+  try {
+    const image = await generateImage({
+      prompt: imagePrompt,
+      artStyle: input.artStyle,
+      aspectRatio: '1:1',
+    });
+
+    return {
+      ...characterDetails,
+      imageDataUri: image.imageDataUri,
+    };
+    
+  } catch (error) {
+    console.error("Error generating character image, returning details only.", error);
+    return {
+      ...characterDetails,
+      imageDataUri: undefined,
+    }
+  }
 }
+
+const generateCharacterDetailsFlow = ai.defineFlow(
+  {
+    name: 'generateCharacterDetailsFlow',
+    inputSchema: GenerateCharacterInputSchema,
+    outputSchema: CharacterDetailsSchema,
+  },
+  async (input) => {
+    console.log('Generating character details for story:', input.story);
+    const { output } = await generateCharacterDetailsPrompt(input);
+
+    if (!output) {
+      throw new Error('Failed to generate character details.');
+    }
+    return output;
+  }
+);
+
 
 const generateCharacterDetailsPrompt = ai.definePrompt({
   name: 'generateCharacterDetailsPrompt',
@@ -48,52 +96,3 @@ Art Style for context:
 
 Generate the character details.`,
 });
-
-const generateCharacterFlow = ai.defineFlow(
-  {
-    name: 'generateCharacterFlow',
-    inputSchema: GenerateCharacterInputSchema,
-    outputSchema: GenerateCharacterOutputSchema,
-  },
-  async (input) => {
-    console.log('Generating character details for story:', input.story);
-    const { output: characterDetails } = await generateCharacterDetailsPrompt(input);
-
-    if (!characterDetails) {
-      throw new Error('Failed to generate character details.');
-    }
-
-    console.log('Generating character image...');
-    const imagePrompt = `Full-body portrait of a character named ${characterDetails.name}.
-Description: ${characterDetails.description}.
-Clothing: ${characterDetails.clothing}.
-Art Style: ${input.artStyle}.`;
-
-    try {
-      const { media } = await imageAI.generate({
-        prompt: imagePrompt,
-        config: {
-          aspectRatio: '1:1',
-          outputResolution: '1k',
-        },
-      });
-
-      const imageDataUri = media?.url;
-      if (!imageDataUri) {
-        throw new Error('Image generation failed to return a data URI.');
-      }
-
-      return {
-        ...characterDetails,
-        imageDataUri,
-      };
-    } catch (error) {
-      console.error("Error in generateCharacterFlow (Image Generation): ", error);
-      // Return details even if image fails
-      return {
-        ...characterDetails,
-        imageDataUri: undefined,
-      };
-    }
-  }
-);
