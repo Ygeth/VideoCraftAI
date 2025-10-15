@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import { z } from 'genkit';
+import { EnchancePromptVeo3, EnchancePromptVeo3_v2 } from '@/ai/prompts/videoEnchancerPrompts'
 
 const PromptEnhancerInputSchemaVeo3 = z.object({
   prompt: z.string().describe('The prompt to enhance for video generation.'),
@@ -34,21 +35,37 @@ const PromptEnhancerFlowVeo3 = ai.defineFlow(
   },
   async (input) => {
     console.log('Enhancing prompt for Veo3 video generation:', input);
-    const { output: enhancedPrompt } = await promptEnhancerPromptVeo3({ prompt: input.prompt });
-    console.log('Enhanced prompt:', enhancedPrompt?.enhancedPrompt);
-    if (!enhancedPrompt) {
+    // const { output: enhancedPrompt } = await promptEnhancerPromptVeo3({ prompt: input.prompt });
+    // console.log('Enhanced prompt:', enhancedPrompt?.enhancedPrompt);
+    // if (!enhancedPrompt) {
+    //   throw new Error('Failed to enhance prompt for Veo3 video generation.');
+    // }
+    // const { output: guidelines } = await promptEnhancerGuidelinePromptVeo3({ prompt: enhancedPrompt.enhancedPrompt });
+    // if (!guidelines) {
+    //   throw new Error('Failed to guideline prompt for Veo3 video generation.');
+    // }
+    // console.log('Guidelines prompt:', guidelines?.enhancedPrompt);
+
+    const { output: enchancedPrompt } = await promptEnchancerFluxVeo3({ prompt: input.prompt });
+    console.log('Enhanced prompt:', enchancedPrompt?.enhancedPrompt);
+    if (!enchancedPrompt) {
       throw new Error('Failed to enhance prompt for Veo3 video generation.');
     }
-    const { output: guidelines } = await promptEnhancerGuidelinePromptVeo3({ prompt: enhancedPrompt.enhancedPrompt });
-    if (!guidelines) {
-      throw new Error('Failed to guideline prompt for Veo3 video generation.');
-    }
-    console.log('Guidelines prompt:', guidelines?.enhancedPrompt);
-
     // return enhancedPrompt;
-    return { enhancedPrompt: guidelines.enhancedPrompt };
+    return { enhancedPrompt: enchancedPrompt.enhancedPrompt };
   }
 );
+
+const promptEnchancerFluxVeo3 = ai.definePrompt({
+  model: 'googleai/gemini-2.5-flash-lite',
+  name: 'promptEnhancerPromptVeo3',
+  input: { schema: PromptEnhancerInputSchemaVeo3 },
+  output: { schema: PromptEnhancerOutputSchemaVeo3 },
+  // system: EnchancePromptVeo3,
+  system: EnchancePromptVeo3_v2,
+  prompt: `User prompt: {{{ prompt }}}`
+});
+
 
 const promptEnhancerPromptVeo3 = ai.definePrompt({
   model: 'googleai/gemini-2.5-flash-lite',

@@ -52,38 +52,22 @@ export const veo3SceneVideoGeneration = videoAI.defineFlow(
   async (input) => {
     console.log('Generating Veo3 video from scene with input:', input);
     // Enhance the prompt if improvePrompt is true
-    if (input.improvePrompt) input.prompt = await enhancePrompt(input.prompt);
+    let finalPrompt = input.prompt
+    if (input.improvePrompt) finalPrompt = await enhancePrompt(input.prompt);
 
     // Check if input image is provided, if so, convert to ImageDTO
     // let image: ImageDTO = { imageBytes: '', mimeType: '' };
     let mediaPartImg: MediaPart = { media: { contentType: '', url: '' } };
     if (input.imgStartUrl) {
       mediaPartImg = generateMediaPartFromFile(input);
-      input.prompt = `Animate this image based on the following scene ${input.prompt}`;
     }
 
-    // Veo3
-    let {operation} = await videoAI.generate({
-      // prompt: [
-      //   { text: input.prompt },
-      //   { media: mediaPartImg.media },
-      // ],
-      system: `You are a professional video director and editor. Create a compelling and engaging video based on the user's prompt and the provided image. Ensure the video is visually appealing, coherent, and effectively conveys the intended message or story. Use cinematic techniques to enhance the storytelling, including appropriate transitions, pacing, and visual effects. The video should be suitable for a wide audience and adhere to community guidelines.`,
-      prompt: input.prompt,
-      image: {
-        bytesBase64Encoded: mediaPartImg.media.url?.split(',')[1] || '',
-        mimeType: mediaPartImg.media.contentType || ''
-      },
-      config: {
-        aspectRatio: input.aspectRatio || '9:16',
-        // durationSeconds: 1,
-        // fps: 24,
-        // generateAudio: true,
-        // resolution: "720p",
-        personGeneration: 'allow_all',
-        // personGeneration: 'allow_adult',
-      },
-    });
+    // Veo3 GenAI
+    let { operation } = await generateVeo3GenAI(finalPrompt, mediaPartImg, input.aspectRatio);
+    
+    // Veo3 VertexAI
+    // let { operation } = await generateVeo3VertexAI(finalPrompt, mediaPartImg, input.aspectRatio);
+
 
     if (!operation) {
       throw new Error('Expected the model to return an operation');
@@ -109,6 +93,37 @@ export const veo3SceneVideoGeneration = videoAI.defineFlow(
     const videoDataUri = await downloadVideo(video, 'output.mp4');
     return { veo3DataUri: videoDataUri };
   });
+
+async function generateVeo3GenAI(prompt: string, mediaPartImg: MediaPart, aspectRatio?: string) { 
+  return videoAI.generate({
+      // system: `You are a professional video director and editor. Create a compelling and engaging video based on the user's prompt and the provided image. Ensure the video is visually appealing, coherent, and effectively conveys the intended message or story. Use cinematic techniques to enhance the storytelling, including appropriate transitions, pacing, and visual effects. The video should be suitable for a wide audience and adhere to community guidelines.`,
+      prompt: prompt,
+    // [
+    //     { text: prompt }, 
+    //     // First Image
+    //     {          
+    //       media: {
+    //         contentType: mediaPartImg.media.contentType,
+    //         url: mediaPartImg.media.url
+    //       }
+    //     }
+    //   ],
+      //Image inicial a animar
+      image: {
+        bytesBase64Encoded: mediaPartImg.media.url?.split(',')[1] || '',
+        mimeType: mediaPartImg.media.contentType || ''
+      },
+      config: {
+        aspectRatio: aspectRatio || '16:9',
+        durationSeconds: 8,
+        // fps: 24,
+        // generateAudio: true,
+        resolution: "720p",
+        personGeneration: 'allow_all',
+        // personGeneration: 'allow_adult',
+      },
+    });
+}
 
 async function downloadVideo(video: MediaPart, path: string) {
   const fetch = (await import('node-fetch')).default;
