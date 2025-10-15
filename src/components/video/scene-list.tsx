@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { SceneCard } from './scene-card';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateScriptShortOutput, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { tones, Tone } from '@/lib/tones';
@@ -21,9 +21,10 @@ interface SceneListProps {
   tone: Tone;
   setTone: (tone: Tone) => void;
   character: GenerateCharacterOutput | null;
+  styleImage: ImageOutput | null;
 }
 
-export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character }: SceneListProps) {
+export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character, styleImage }: SceneListProps) {
   const [_scenes, _setScenes] = useState(scenes);
 
   useEffect(() => {
@@ -96,6 +97,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
           onDelete={handleDeleteScene}
           onUpdate={handleUpdateScene}
           character={character}
+          styleImage={styleImage}
         />
       ))}
       <Button onClick={handleAddScene} variant="outline" className="w-full">

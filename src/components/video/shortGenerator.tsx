@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneList } from "@/components/video/scene-list";
-import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateScriptShortOutput, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { GenerateCharacterOutput } from "@/ai/flows/generate-character";
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
@@ -15,6 +15,7 @@ import { ArtStyle, artStyles } from '@/lib/artstyles';
 import { useState } from "react";
 import { RectangleHorizontal, RectangleVertical, Square, Sparkles, User } from "lucide-react";
 import { CharacterCard } from "./character-card";
+import { StyleCard } from "./style-card";
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -32,6 +33,7 @@ interface shortGeneratorProps {
   onGenerateVideo: (scenes: Scene[]) => void;
   scenes: GenerateScriptShortOutput;
   character: GenerateCharacterOutput | null;
+  styleImage: ImageOutput | null;
   setScenes: (output: GenerateScriptShortOutput) => void;
   finalVideoId: string | null;
   onDownloadFinalVideo: () => void;
@@ -55,6 +57,7 @@ export function ShortGenerator({
   onGenerateVideo,
   scenes,
   character,
+  styleImage,
   setScenes,
   finalVideoId,
   onDownloadFinalVideo,
@@ -93,8 +96,8 @@ export function ShortGenerator({
             <CardTitle>Guion y Estilo</CardTitle>
             <div className="flex gap-2">
               <Button onClick={() => onGenerateCharacter()} disabled={!!isLoading}>
-                {isLoading === 'Generating character...' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User />}
-                Character
+                {isLoading === 'Generating character & style...' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User />}
+                Personaje
               </Button>
               <Button onClick={() => onGenerateScript()} disabled={!!isLoading}>
                 {isLoading === 'Generating script...' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -193,7 +196,10 @@ export function ShortGenerator({
         </CardContent>
       </Card>
       <div className="md:col-span-3 space-y-8">
-        <CharacterCard character={character} />
+        <div className="grid md:grid-cols-2 gap-8">
+            <CharacterCard character={character} />
+            <StyleCard styleImage={styleImage} />
+        </div>
 
         <Card>
           <CardHeader>
@@ -225,6 +231,7 @@ export function ShortGenerator({
                     tone={tone}
                     setTone={setTone}
                     character={character}
+                    styleImage={styleImage}
                   />
                 </div>
               </div>

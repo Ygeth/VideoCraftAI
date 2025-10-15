@@ -24,6 +24,7 @@ export const ImageInputSchema = z.object({
   artStyle: z.string().describe('The art style to apply to the image.').optional(),
   aspectRatio: z.string().optional().describe('The aspect ratio for the generated image, e.g., "9:16" or "16:9".').optional(),
   characterImageDataUri: z.string().optional().describe('Optional data URI of a character image to use as a reference.'),
+  styleImageDataUri: z.string().optional().describe('Optional data URI of a style reference image to use.'),
 });
 export type ImageInput = z.infer<typeof ImageInputSchema>;
 
