@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneList } from "@/components/video/scene-list";
 import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateCharacterOutput } from "@/ai/flows/generate-character";
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArtStyle, artStyles } from '@/lib/artstyles';
 import { useState } from "react";
-import { RectangleHorizontal, RectangleVertical, Square, Sparkles } from "lucide-react";
+import { RectangleHorizontal, RectangleVertical, Square, Sparkles, User } from "lucide-react";
+import { CharacterCard } from "./character-card";
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -26,8 +28,10 @@ interface shortGeneratorProps {
   isLoadingAudio: boolean;
   isLoadingVideo: boolean;
   onGenerateScript: () => void;
+  onGenerateCharacter: () => void;
   onGenerateVideo: (scenes: Scene[]) => void;
   scenes: GenerateScriptShortOutput;
+  character: GenerateCharacterOutput | null;
   setScenes: (output: GenerateScriptShortOutput) => void;
   finalVideoId: string | null;
   onDownloadFinalVideo: () => void;
@@ -47,8 +51,10 @@ export function ShortGenerator({
   isLoadingAudio,
   isLoadingVideo,
   onGenerateScript,
+  onGenerateCharacter,
   onGenerateVideo,
   scenes,
+  character,
   setScenes,
   finalVideoId,
   onDownloadFinalVideo,
@@ -85,10 +91,16 @@ export function ShortGenerator({
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Guion y Estilo</CardTitle>
-            <Button onClick={() => onGenerateScript()} disabled={!!isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Generating...' : 'Generate Script'}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => onGenerateCharacter()} disabled={!!isLoading}>
+                {isLoading === 'Generating character...' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User />}
+                Character
+              </Button>
+              <Button onClick={() => onGenerateScript()} disabled={!!isLoading}>
+                {isLoading === 'Generating script...' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Script
+              </Button>
+            </div>
           </div>
           <CardDescription>
             Escribe una historia, define un estilo visual y genera el guion.
@@ -180,41 +192,45 @@ export function ShortGenerator({
           </div>
         </CardContent>
       </Card>
-      <Card className="md:col-span-3">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Escenas</CardTitle>
-            <div className="flex gap-2">
-              <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || !!isLoadingVideo || !!isLoading}>
-                {(isLoadingImages || isLoadingAudio || isLoadingVideo) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Generate Video
-              </Button>
-              <Button onClick={onDownloadFinalVideo} disabled={!finalVideoId}>
-                Download Video
-              </Button>
-            </div>
-          </div>
-          <CardDescription>
-            Revisa las escenas y genera las imágenes con los modelos de IA.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {scenes && (
-            <div>
-              <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
-                <SceneList
-                  scenes={scenes.scenes}
-                  onScenesChange={handleScenesChange}
-                  artStyle={artStyle}
-                  aspectRatio={aspectRatio}
-                  tone={tone}
-                  setTone={setTone}
-                />
+      <div className="md:col-span-3 space-y-8">
+        <CharacterCard character={character} />
+
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Escenas</CardTitle>
+              <div className="flex gap-2">
+                <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || !!isLoadingVideo || !!isLoading}>
+                  {(isLoadingImages || isLoadingAudio || isLoadingVideo) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Generate Video
+                </Button>
+                <Button onClick={onDownloadFinalVideo} disabled={!finalVideoId}>
+                  Download Video
+                </Button>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <CardDescription>
+              Revisa las escenas y genera las imágenes con los modelos de IA.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {scenes && (
+              <div>
+                <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
+                  <SceneList
+                    scenes={scenes.scenes}
+                    onScenesChange={handleScenesChange}
+                    artStyle={artStyle}
+                    aspectRatio={aspectRatio}
+                    tone={tone}
+                    setTone={setTone}
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

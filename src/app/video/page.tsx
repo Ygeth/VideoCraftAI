@@ -15,6 +15,7 @@ import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
 import { generateImage as generateImageFal } from '@/ai/flows/image-generation/generate-image-fal';
 import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
+import { generateCharacter, GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { TaskQueue } from '@/lib/queue';
@@ -25,7 +26,7 @@ async function dataUriToToFile(dataUri: string, fileName: string): Promise<File>
   return new File([blob], fileName, { type: blob.type });
 }
 
-export default function VideoPage() {
+export default function ShortVideosPage() {
   const { toast } = useToast();
   const [story, setStory] = useState('A short video about sustainable farming');
   const [artStyle, setArtStyle] = useState(defaultStyle.artStyle);
@@ -34,6 +35,7 @@ export default function VideoPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [scenes, setScenes] = useState<GenerateScriptShortOutput>({ scenes: [] });
+  const [character, setCharacter] = useState<GenerateCharacterOutput | null>(null);
   const [finalVideoId, setFinalVideoId] = useState<string | null>(null);
   const [backgroundMusicId, setBackgroundMusicId] = useState<string | undefined>(undefined);
   const [tone, setTone] = useState<Tone>(defaultTone);
@@ -43,6 +45,24 @@ export default function VideoPage() {
     setStyle(newStyle);
     setTone(newStyle.tone);
     setArtStyle(newStyle.artStyle);
+  };
+  
+  const handleGenerateCharacter = async () => {
+    setIsLoading('Generating character...');
+    try {
+      const characterOutput = await generateCharacter({ story, artStyle });
+      setCharacter(characterOutput);
+      toast({ title: 'Character Generated Successfully' });
+    } catch (error) {
+      console.error('Error generating character:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Character generation failed',
+        description: 'Could not generate the character. Please try again.',
+      });
+    } finally {
+      setIsLoading(null);
+    }
   };
 
   const generateScript = async () => {
@@ -113,11 +133,6 @@ export default function VideoPage() {
   const generateImageForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingImages(true);
     try {
-      // const image: ImageOutput = await new Promise(resolve => setTimeout(() => {
-      //   resolve({ imageDataUri: imageTestData });
-      // }, 2000));
-      // const image = await generateImageGemini({ prompt: scene.imgPrompt, artStyle: artStyle });
-      // const image = await generateImageFal({ prompt: scene.imgPrompt, artStyle: artStyle });
       const image = await generateImage({ prompt: scene.imgPrompt, artStyle: artStyle });
       scene.imageUrl = image.imageDataUri;
 
@@ -141,15 +156,11 @@ export default function VideoPage() {
   const generateAudioForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingAudio(true);
     try {
-      // console.log('Generating audio for scene:', scene);
-      // const audio: { audioDataUri: string } = await new Promise(resolve => setTimeout(() => {
-      //   resolve({ audioDataUri: audioTestData });
-      // }, 3000));
       const audio = await generateSpeech({
         text: scene.narrator,
         voice: tone.voice,
         tonePrompt: tone.tonePrompt,
-      }); //, artStyle: artStyle });
+      }); 
       scene.audioUrl = audio.audioDataUri;
       if (audio.audioDataUri && audio.audioDataUri.startsWith('data:')) {
         const audioFile = await dataUriToToFile(audio.audioDataUri, `scene-${scene.id}.mp3`);
@@ -171,7 +182,6 @@ export default function VideoPage() {
   const generateVideoForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingVideo(true);
     try {
-      // Generar video con TTS y Captioning
       if (scene.imageStorageId && scene.audioStorageId && scene.narrator) {
         const video = await generateTTSCaptionedVideo(scene.imageStorageId, scene.audioStorageId, scene.narrator);
         console.log(`Video for scene ${scene.id} generated with ID: ${video.file_id}`);
@@ -200,15 +210,13 @@ export default function VideoPage() {
     try {
       
       const finalVideo = await mergeVideos(scenes.map(s => s.videoTTSId).filter((id): id is string => !!id), backgroundMusicId, 0.3);
-      // merge videos de todas las escenas
       console.log('Final video ID:', finalVideo);
 
       if (style.overlayUrl) {
-        // Añadir overlay
         const overlayResponse = await fetch(style.overlayUrl);
         const overlayBlob = await overlayResponse.blob();
         const fileName = style.overlayUrl.split('/').pop() || 'overlay';
-        const overlayFile = new File([overlayBlob], fileName, { type: overlayBlob.type });
+        const overlayFile = new File([blob], fileName, { type: overlayBlob.type });
         const savedOverlay = await saveFile(overlayFile, 'video');
 
         await pollFileStatus(finalVideo.file_id);
@@ -274,7 +282,7 @@ export default function VideoPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl font-bold">Story Building</h1>
+        <h1 className="text-4xl font-bold">Short Videos</h1>
       </div>
 
       <ShortGenerator 
@@ -287,8 +295,10 @@ export default function VideoPage() {
         isLoadingAudio={isLoadingAudio}
         isLoadingVideo={isLoadingVideo}
         onGenerateScript={ generateScript }
+        onGenerateCharacter={ handleGenerateCharacter }
         onGenerateVideo={ generateVideo }
         scenes={scenes}
+        character={character}
         setScenes={setScenes}
         finalVideoId={finalVideoId}
         onDownloadFinalVideo={handleDownloadFinalVideo}
