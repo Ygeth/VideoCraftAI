@@ -48,7 +48,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
             <div className="aspect-square bg-muted rounded-lg flex items-center justify-center relative overflow-hidden">
                  <Image
                     src={character.imageDataUri}
-                    alt={character.name}
+                    alt={`Portrait of ${character.name}`}
                     fill
                     className="object-cover"
                 />
