@@ -1,3 +1,5 @@
 node_modules/**
 .next/**
 .cache/**
+src/node_modules
+src/node_modules/**
