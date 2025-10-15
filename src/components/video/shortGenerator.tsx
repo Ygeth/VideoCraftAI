@@ -63,7 +63,7 @@ export function ShortGenerator({
   style,
   setStyle
 }: shortGeneratorProps) {
-  const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [aspectRatio, setAspectRatio] = useState('9:16');
 
   const handleScenesChange = (newScenes: Scene[]) => {
     setScenes({ ...scenes, scenes: newScenes });
@@ -224,6 +224,7 @@ export function ShortGenerator({
                     aspectRatio={aspectRatio}
                     tone={tone}
                     setTone={setTone}
+                    character={character}
                   />
                 </div>
               </div>
