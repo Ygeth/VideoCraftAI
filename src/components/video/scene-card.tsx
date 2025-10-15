@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from '../ui/visually-hidden';
 import { Label } from '../ui/label';
-import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateScriptShortOutput, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { Tone } from '@/lib/tones';
 
@@ -32,9 +32,10 @@ interface SceneCardProps {
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
   character: GenerateCharacterOutput | null;
+  styleImage: ImageOutput | null;
 }
 
-export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate, character }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate, character, styleImage }: SceneCardProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
@@ -82,6 +83,7 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
         artStyle: artStyle,
         aspectRatio: aspectRatio,
         characterImageDataUri: character?.imageDataUri,
+        styleImageDataUri: styleImage?.imageDataUri,
       });
       onUpdate(sceneIndex, { ...scene, imageUrl: imageDataUri });
     } catch (error) {

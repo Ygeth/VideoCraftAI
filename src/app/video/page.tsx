@@ -31,6 +31,7 @@ export default function ShortVideosPage() {
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [scenes, setScenes] = useState<GenerateScriptShortOutput>({ scenes: [] });
   const [character, setCharacter] = useState<GenerateCharacterOutput | null>(null);
+  const [styleImage, setStyleImage] = useState<ImageOutput | null>(null);
   const [finalVideoId, setFinalVideoId] = useState<string | null>(null);
   const [backgroundMusicId, setBackgroundMusicId] = useState<string | undefined>(undefined);
   const [tone, setTone] = useState<Tone>(defaultTone);
@@ -43,33 +44,35 @@ export default function ShortVideosPage() {
   };
   
   const handleGenerateCharacter = async () => {
-    setIsLoading('Generating character...');
+    setIsLoading('Generating character & style...');
     try {
-      // 1. Generate character details (text)
       const characterDetails = await generateCharacter({ story, artStyle });
 
-      // 2. Build a prompt for the image from the details
-      const imagePrompt = `Full-body portrait of a character named ${characterDetails.name}.
-        Description: ${characterDetails.description}.
-        Clothing: ${characterDetails.clothing}.
-        Art Style: ${artStyle}.`;
-
-      // 3. Generate the image
-      const image = await generateImage({
-        prompt: imagePrompt,
-        artStyle: artStyle,
-        aspectRatio: '1:1',
-      });
+      const [characterImage, styleRefImage] = await Promise.all([
+        generateImage({
+          prompt: `Full-body portrait of a character named ${characterDetails.name}.
+            Description: ${characterDetails.description}.
+            Clothing: ${characterDetails.clothing}.
+            Art Style: ${artStyle}.`,
+          artStyle: artStyle,
+          aspectRatio: '1:1',
+        }),
+        generateImage({
+          prompt: `A scene that captures the essence of this style: ${artStyle}`,
+          artStyle: artStyle,
+          aspectRatio: '16:9',
+        }),
+      ]);
       
-      // 4. Combine text and image data
       const fullCharacter: GenerateCharacterOutput = {
           ...characterDetails,
-          imageDataUri: image.imageDataUri,
+          imageDataUri: characterImage.imageDataUri,
       }
 
       setCharacter(fullCharacter);
+      setStyleImage(styleRefImage);
 
-      toast({ title: 'Character Generated Successfully' });
+      toast({ title: 'Character and Style Generated Successfully' });
     } catch (error) {
       console.error('Error generating character:', error);
       toast({
@@ -143,7 +146,8 @@ export default function ShortVideosPage() {
         prompt: scene.imgPrompt,
         artStyle: artStyle,
         aspectRatio: "9:16",
-        characterImageDataUri: character?.imageDataUri
+        characterImageDataUri: character?.imageDataUri,
+        styleImageDataUri: styleImage?.imageDataUri,
       });
       scene.imageUrl = image.imageDataUri;
       return image.imageDataUri;
@@ -309,6 +313,7 @@ export default function ShortVideosPage() {
         onGenerateVideo={ generateVideo }
         scenes={scenes}
         character={character}
+        styleImage={styleImage}
         setScenes={setScenes}
         finalVideoId={finalVideoId}
         onDownloadFinalVideo={handleDownloadFinalVideo}

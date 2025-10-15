@@ -38,23 +38,27 @@ const generateImageFlow = ai.defineFlow(
     console.log('Final enhanced prompt for image generation: ', finalPrompt);
 
     // 2. Decide which model to use
-    if (input.characterImageDataUri) {
+    if (input.characterImageDataUri || input.styleImageDataUri) {
       // Use Gemini for image-to-image/reference generation
-      console.log('Using Gemini with character reference image.');
+      console.log('Using Gemini with reference images.');
       try {
         const promptParts: (
           | {text: string}
           | {media: {url: string; contentType?: string}}
-        )[] = [
-          {
-            media: {
-              url: input.characterImageDataUri,
-            },
-          },
-          {
-            text: `Use the character in this image as a reference. Now, create a new scene based on the following prompt: ${finalPrompt}`,
-          },
-        ];
+        )[] = [];
+        
+        let textPrompt = `Create a new scene based on the following prompt: ${finalPrompt}.`;
+
+        if (input.characterImageDataUri) {
+          promptParts.push({ media: { url: input.characterImageDataUri }});
+          textPrompt += ` Use the character in the first image as a reference.`
+        }
+        if (input.styleImageDataUri) {
+          promptParts.push({ media: { url: input.styleImageDataUri }});
+          textPrompt += ` Apply the visual style from the second image.`
+        }
+
+        promptParts.push({ text: textPrompt });
 
         const {media} = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image-preview',
