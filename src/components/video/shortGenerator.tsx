@@ -198,7 +198,7 @@ export function ShortGenerator({
       <div className="md:col-span-3 space-y-8">
         <div className="grid md:grid-cols-2 gap-8">
             <CharacterCard character={character} />
-            <StyleCard styleImage={styleImage} />
+            {/* <StyleCard styleImage={styleImage} /> */}
         </div>
 
         <Card>

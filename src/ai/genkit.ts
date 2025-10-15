@@ -11,6 +11,11 @@ export const imageAI = genkit({
   model: 'googleai/imagen-4.0-fast-generate-001',
 });
 
+export const nanoBananaAI = genkit({
+  plugins: [googleAI()],
+  model: 'googleai/gemini-2.5-flash-image-preview',
+});
+
 export const videoAI = genkit({
   plugins: [googleAI()],
   // model: 'googleai/veo-3.0-generate-001',

@@ -48,7 +48,7 @@ export default function ShortVideosPage() {
     try {
       const characterDetails = await generateCharacter({ story, artStyle });
 
-      const [characterImage, styleRefImage] = await Promise.all([
+      const [characterImage] = await Promise.all([
         generateImage({
           prompt: `Full-body portrait of a character named ${characterDetails.name}.
             Description: ${characterDetails.description}.
@@ -56,11 +56,6 @@ export default function ShortVideosPage() {
             Art Style: ${artStyle}.`,
           artStyle: artStyle,
           aspectRatio: '1:1',
-        }),
-        generateImage({
-          prompt: `A scene that captures the essence of this style: ${artStyle}`,
-          artStyle: artStyle,
-          aspectRatio: '16:9',
         }),
       ]);
       
@@ -70,9 +65,8 @@ export default function ShortVideosPage() {
       }
 
       setCharacter(fullCharacter);
-      setStyleImage(styleRefImage);
 
-      toast({ title: 'Character and Style Generated Successfully' });
+      toast({ title: 'Character Generated Successfully' });
     } catch (error) {
       console.error('Error generating character:', error);
       toast({

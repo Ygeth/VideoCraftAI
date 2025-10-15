@@ -9,7 +9,7 @@
  * - GenerateImageOutput - The return type for the generateImage function.
  */
 
-import {ai, imageAI} from '@/ai/genkit';
+import {ai, imageAI, nanoBananaAI} from '@/ai/genkit';
 import {ImageInput, ImageInputSchema} from '@/ai/flows/image-generation/schemas';
 import {ImageOutput, ImageOutputSchema} from '@/ai/flows/image-generation/schemas';
 import {promptEnhancerImagen} from '@/ai/flows/image-generation/prompt-enchancer-img';
@@ -29,14 +29,11 @@ const generateImageFlow = ai.defineFlow(
     console.log('Generating image with multi-model logic:', input);
 
     // 1. Enhance the prompt
-    let finalPrompt =
-      input.prompt +
-      (input.artStyle ? '. \n Keep the Art Style: ' + input.artStyle : '');
+    let finalPrompt = input.prompt + (input.artStyle ? '. \n Keep the Art Style: ' + input.artStyle : '');
     const {enhancedPrompt} = await promptEnhancerImagen({prompt: finalPrompt});
     finalPrompt = enhancedPrompt ?? finalPrompt;
 
     console.log('Final enhanced prompt for image generation: ', finalPrompt);
-
     // 2. Decide which model to use
     if (input.characterImageDataUri || input.styleImageDataUri) {
       // Use Gemini for image-to-image/reference generation
@@ -53,26 +50,9 @@ const generateImageFlow = ai.defineFlow(
           promptParts.push({ media: { url: input.characterImageDataUri }});
           textPrompt += ` Use the character in the first image as a reference.`
         }
-        if (input.styleImageDataUri) {
-          promptParts.push({ media: { url: input.styleImageDataUri }});
-          textPrompt += ` Apply the visual style from the second image.`
-        }
-
         promptParts.push({ text: textPrompt });
 
-        const {media} = await ai.generate({
-          model: 'googleai/gemini-2.5-flash-image-preview',
-          prompt: promptParts,
-          config: {
-            responseModalities: ['IMAGE'],
-          },
-        });
-
-        const imageDataUri = media?.url;
-        if (!imageDataUri) {
-          throw new Error('Gemini generation failed to return a data URI.');
-        }
-        return {imageDataUri};
+        return generateWithNanoBana(promptParts);
       } catch (error) {
         console.error('Error in Gemini generation, falling back to Imagen: ', error);
         // Fallback to Imagen if Gemini fails
@@ -107,6 +87,27 @@ async function generateWithImagen(
     return {imageDataUri};
   } catch (error) {
     console.error('Error in generateWithImagen (Imagen): ', error);
+    throw error;
+  }
+}
+
+async function generateWithNanoBana(promptParts: (| { text: string }| { media: { url: string; contentType?: string } })[]): Promise<ImageOutput> {
+  try {
+    const {media} = await ai.generate({
+      model: 'googleai/gemini-2.5-flash-image-preview',
+      prompt: promptParts,
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
+
+    const imageDataUri = media?.url;
+    if (!imageDataUri) {
+      throw new Error('Gemini generation failed to return a data URI.');
+    }
+    return { imageDataUri };
+  } catch (error) {
+    console.error('Error in generateWithNanoBana (Gemini): ', error);
     throw error;
   }
 }
