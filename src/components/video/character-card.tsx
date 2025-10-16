@@ -42,37 +42,44 @@ export function CharacterCard({ character }: CharacterCardProps) {
             {character.name}
         </CardTitle>
         <CardDescription>
-            {character.description}
+            <div className="flex">
+                <div className="mr-4">
+                    {character.imageDataUri && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <div className="aspect-[1/1] w-auto h-52 bg-muted rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer">
+                                    <Image
+                                    src={character.imageDataUri}
+                                    alt={`Portrait of ${character.name}`}
+                                    fill
+                                    className="object-cover"
+                                />
+                                </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl h-[90vh]">
+                                <VisuallyHidden>
+                                    <DialogTitle>Character Preview</DialogTitle>
+                                </VisuallyHidden>
+                                <div className="w-full h-full relative">
+                                    <Image
+                                        src={character.imageDataUri}
+                                        alt="Character Preview"
+                                        fill
+                                        className="object-contain rounded-lg"
+                                    />
+                                </div>
+                            </DialogContent>
+                        </Dialog>  
+                    )}
+                </div>
+                <div>
+                    <h4 className="font-semibold text-sm mb-2">Description:</h4>
+                    {character.description}        
+                </div>
+            </div>
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-            {character.imageDataUri && (
-            <Dialog>
-                <DialogTrigger asChild>
-                    <div className="aspect-[16/9] bg-muted rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer">
-                        <Image
-                        src={character.imageDataUri}
-                        alt={`Portrait of ${character.name}`}
-                        fill
-                        className="object-cover"
-                    />
-                    </div>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl h-[90vh]">
-                    <VisuallyHidden>
-                        <DialogTitle>Character Preview</DialogTitle>
-                    </VisuallyHidden>
-                    <div className="w-full h-full relative">
-                        <Image
-                            src={character.imageDataUri}
-                            alt="Character Preview"
-                            fill
-                            className="object-contain rounded-lg"
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>  
-        )}
+      {/* <CardContent className="space-y-4">            
          <div>
             <h4 className="font-semibold text-sm mb-2">Clothing:</h4>
             <p className="text-sm text-muted-foreground">{character.clothing}</p>
@@ -85,7 +92,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
                 ))}
             </div>
         </div>
-      </CardContent>
+      </CardContent> */}
     </Card>
   );
 }

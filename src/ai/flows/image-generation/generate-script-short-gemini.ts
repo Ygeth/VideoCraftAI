@@ -38,9 +38,9 @@ const generateScriptShortPrompt = ai.definePrompt({
 The script should be an array of scenes. Each scene object must include:
 1.  A "narrator" field with the prompt for the voiceover text for the scene. Use the sign punctuation and style that best fits the narration style.
 2.  An "imgPrompt" field with a detailed image generation prompt that captures the essence of the scene, following the specified art style. The image prompt must have the following format:
-  Scene Characters:
-  - {Name}: Character Prompt: {Character phisical description.}
-  - Others characters as needed.
+  Scene Characters (if any):
+  - {Name of the main character, no description}.
+  - Others characters as needed, with description.
   Scene Description: {A detailed description of the scene, including the environment, background elements, and any relevant details that set the scene. If there are characters, describe their appearance, clothing, and expressions.}
   Scene Composition: {Details about the composition of the scene, such as camera angle, perspective, and focal points.}
   Lighting and mood: {Details about the lighting conditions and the overall mood or atmosphere of the scene.}

@@ -10,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColorkeyOverlay, checkStatus } from '@/services/aiAgentsTools';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
 import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
-import { generateCharacter, GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { TaskQueue } from '@/lib/queue';
@@ -30,8 +29,6 @@ export default function ShortVideosPage() {
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [isLoadingVideo, setIsLoadingVideo] = useState(false);
   const [scenes, setScenes] = useState<GenerateScriptShortOutput>({ scenes: [] });
-  const [character, setCharacter] = useState<GenerateCharacterOutput | null>(null);
-  const [styleImage, setStyleImage] = useState<ImageOutput | null>(null);
   const [finalVideoId, setFinalVideoId] = useState<string | null>(null);
   const [backgroundMusicId, setBackgroundMusicId] = useState<string | undefined>(undefined);
   const [tone, setTone] = useState<Tone>(defaultTone);
@@ -42,42 +39,7 @@ export default function ShortVideosPage() {
     setTone(newStyle.tone);
     setArtStyle(newStyle.artStyle);
   };
-  
-  const handleGenerateCharacter = async () => {
-    setIsLoading('Generating character & style...');
-    try {
-      const characterDetails = await generateCharacter({ story, artStyle });
 
-      const [characterImage] = await Promise.all([
-        generateImage({
-          prompt: `Full-body portrait of a character named ${characterDetails.name}.
-            Description: ${characterDetails.description}.
-            Clothing: ${characterDetails.clothing}.
-            Art Style: ${artStyle}.`,
-          artStyle: artStyle,
-          aspectRatio: '1:1',
-        }),
-      ]);
-      
-      const fullCharacter: GenerateCharacterOutput = {
-          ...characterDetails,
-          imageDataUri: characterImage.imageDataUri,
-      }
-
-      setCharacter(fullCharacter);
-
-      toast({ title: 'Character Generated Successfully' });
-    } catch (error) {
-      console.error('Error generating character:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Character generation failed',
-        description: 'Could not generate the character. Please try again.',
-      });
-    } finally {
-      setIsLoading(null);
-    }
-  };
 
   const generateScript = async () => {
     setIsLoading('Generating script...');
@@ -101,7 +63,7 @@ export default function ShortVideosPage() {
       
       const processScene = async (scene: Scene) => {
         const imageUrl = await generateImageForScene(scene);
-        const audioId = await generateAudioForScene(scene);
+        // const audioId = await generateAudioForScene(scene);
         
         // This is a simplified flow. In a real-world scenario, you might want to wait
         // for image/audio to be processed before generating the video for that scene.
@@ -110,7 +72,7 @@ export default function ShortVideosPage() {
         setScenes(prevScenes => ({
           ...prevScenes,
           scenes: prevScenes.scenes.map(s => 
-            s.id === scene.id ? { ...s, imageUrl, audioStorageId: audioId } : s
+            s.id === scene.id ? { ...s, imageUrl } : s
           )
         }));
       };
@@ -140,8 +102,6 @@ export default function ShortVideosPage() {
         prompt: scene.imgPrompt,
         artStyle: artStyle,
         aspectRatio: "9:16",
-        characterImageDataUri: character?.imageDataUri,
-        styleImageDataUri: styleImage?.imageDataUri,
       });
       scene.imageUrl = image.imageDataUri;
       return image.imageDataUri;
@@ -288,7 +248,7 @@ export default function ShortVideosPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col items-center p-24 w-full">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
         <h1 className="text-4xl font-bold">Short Videos</h1>
       </div>
@@ -303,11 +263,9 @@ export default function ShortVideosPage() {
         isLoadingAudio={isLoadingAudio}
         isLoadingVideo={isLoadingVideo}
         onGenerateScript={ generateScript }
-        onGenerateCharacter={ handleGenerateCharacter }
         onGenerateVideo={ generateVideo }
+        onToast={toast}
         scenes={scenes}
-        character={character}
-        styleImage={styleImage}
         setScenes={setScenes}
         finalVideoId={finalVideoId}
         onDownloadFinalVideo={handleDownloadFinalVideo}

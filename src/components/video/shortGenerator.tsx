@@ -6,8 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneList } from "@/components/video/scene-list";
-import { GenerateScriptShortOutput, ImageOutput } from '@/ai/flows/image-generation/schemas';
-import { GenerateCharacterOutput } from "@/ai/flows/generate-character";
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,7 +13,13 @@ import { ArtStyle, artStyles } from '@/lib/artstyles';
 import { useState } from "react";
 import { RectangleHorizontal, RectangleVertical, Square, Sparkles, User } from "lucide-react";
 import { CharacterCard } from "./character-card";
-import { StyleCard } from "./style-card";
+import { StoryCard } from "./story-card";
+import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { generateCharacterDetails, generateCharacterImage, GenerateCharacterOutput } from '@/ai/flows/generate-character';
+import { generateImage } from '@/ai/flows/image-generation/generate-image';
+import { generateScriptStoryboard } from '@/ai/flows/storyboard/generate-script-storyboard';
+import { StoryboardOutput } from '@/ai/flows/storyboard/schemas';
+import { ImageOutput } from '@/ai/flows/image-generation/schemas';
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -29,11 +33,11 @@ interface shortGeneratorProps {
   isLoadingAudio: boolean;
   isLoadingVideo: boolean;
   onGenerateScript: () => void;
-  onGenerateCharacter: () => void;
   onGenerateVideo: (scenes: Scene[]) => void;
+  onToast: (options: { title: string; description?: string; variant?: 'default' | 'destructive' }) => void;
   scenes: GenerateScriptShortOutput;
-  character: GenerateCharacterOutput | null;
-  styleImage: ImageOutput | null;
+  // character: GenerateCharacterOutput | null;
+  // styleImage: ImageOutput | null;
   setScenes: (output: GenerateScriptShortOutput) => void;
   finalVideoId: string | null;
   onDownloadFinalVideo: () => void;
@@ -53,20 +57,22 @@ export function ShortGenerator({
   isLoadingAudio,
   isLoadingVideo,
   onGenerateScript,
-  onGenerateCharacter,
-  onGenerateVideo,
+  onToast,
   scenes,
-  character,
-  styleImage,
   setScenes,
   finalVideoId,
   onDownloadFinalVideo,
   tone,
   setTone,
   style,
-  setStyle
+  setStyle,
+  onGenerateVideo,
 }: shortGeneratorProps) {
+  const [isLoadingCharacter, setIsLoadingCharacter] = useState<boolean | null>(false);
+  const [isLoadingStoryboard, setIsLoadingStoryboard] = useState<boolean | null>(false);
   const [aspectRatio, setAspectRatio] = useState('9:16');
+  const [character, setCharacter] = useState<GenerateCharacterOutput | null>(null);
+  const [storyboard, setStoryboard] = useState<StoryboardOutput>();
 
   const handleScenesChange = (newScenes: Scene[]) => {
     setScenes({ ...scenes, scenes: newScenes });
@@ -86,22 +92,113 @@ export function ShortGenerator({
     }
   }
 
+  async function onGenerateCharacter() {
+    setIsLoadingCharacter(true);
+    try {
+      const characterDetails = await generateCharacterDetails({ story, artStyle });
+      const characterImage = await generateCharacterImage({ characterDetails, artStyle });
+      
+      const fullCharacter: GenerateCharacterOutput = {
+          ...characterDetails,
+          imageDataUri: characterImage.imageDataUri,
+      }
+
+      setCharacter(fullCharacter);
+      onToast({ title: 'Character Generated Successfully' });
+    } catch (error) {
+      console.error('Error generating character:', error);
+      onToast({
+        variant: 'destructive',
+        title: 'Character generation failed',
+        description: 'Could not generate the character. Please try again.',
+      });
+    } finally {
+      setIsLoadingCharacter(null);
+    }
+  };
+
+  async function onGenerateStoryBoard() {
+    setIsLoadingStoryboard(true);
+    try {
+      const scriptOutput = await generateScriptStoryboard({ story, artStyle, character: character ? character.name : undefined });
+      setStoryboard(scriptOutput);
+      onToast({ title: 'Storyboard Generated Successfully' });
+    } catch (error) {
+      console.error('Error generating storyboard:', error);
+      onToast({
+        variant: 'destructive',
+        title: 'Storyboard generation failed',
+        description: 'Could not generate the storyboard. Please try again.',
+      });
+    } finally {
+      setIsLoadingStoryboard(null);
+    }
+  }
+
+  const onGenerateImageForScene = async (sceneIndex: number) => {
+    onToast({ title: 'Generating image...' });
+    const sceneToUpdate = storyboard?.scenes[sceneIndex];
+    let prompt =
+      `Generate a detailed image for the following scene description: ${sceneToUpdate?.description}.
+      imagePrompt: ${sceneToUpdate?.imagePrompt}.`;
+    
+    try {
+      const image: ImageOutput = await generateImage({
+        prompt: prompt,
+        artStyle: artStyle,
+        aspectRatio: aspectRatio,
+        characterImageDataUri: character?.imageDataUri,
+      });
+      if (!image || !image.imageDataUri) {
+        throw new Error('Image generation returned no data URI.');
+      }
+      if (storyboard && sceneToUpdate) {
+        const updatedScenes = storyboard.scenes.map((scene, index) =>
+          index === sceneIndex ? { ...scene, imageUrl: image.imageDataUri } : scene
+        );
+        const updatedStoryboard = { ...storyboard, scenes: updatedScenes };
+        setStoryboard(updatedStoryboard);
+        // setScenes(updatedStoryboard);
+      }
+
+
+      // setScenes(prevScenes => ({
+      //   ...prevScenes,
+      //   scenes: prevScenes.scenes.map(scene =>
+      //     scene.id === sceneToUpdate.id ? { ...scene, imageUrl: image.imageDataUri } : scene
+      //   ),
+      // }));
+      onToast({ title: 'Image Generated Successfully' });
+    } catch (error) {
+      console.error('Error generating image for scene:', error);
+      onToast({
+        variant: 'destructive',
+        title: 'Image generation failed',
+        description: 'Could not generate the image for this scene. Please try again.',
+      });
+    }
+  };
+
   const selectedArtStyle = artStyles.find(a => a.prompt === artStyle);
 
   return (
-    <div className="grid md:grid-cols-5 gap-8">
-      <Card className="md:col-span-2">
+    <div className="flex flex-col md:flex-row h-full w-full gap-8">
+      <Card className="w-full md:w-1/4 flex flex-col">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Guion y Estilo</CardTitle>
             <div className="flex gap-2">
-              <Button onClick={() => onGenerateCharacter()} disabled={!!isLoading}>
-                {isLoading === 'Generating character & style...' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User />}
+              <Button onClick={() => onGenerateCharacter()} disabled={!!isLoadingCharacter}>
+                {isLoadingCharacter ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <User />}
                 Personaje
               </Button>
               <Button onClick={() => onGenerateScript()} disabled={!!isLoading}>
                 {isLoading === 'Generating script...' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Script
+              </Button>
+              <Button onClick={() => onGenerateStoryBoard()} disabled={!!isLoadingStoryboard}>
+                {isLoadingStoryboard && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                StoryBoard
               </Button>
             </div>
           </div>
@@ -110,7 +207,7 @@ export function ShortGenerator({
           </CardDescription>
 
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 flex-1 overflow-y-auto">
           <div className="flex space-x-4 justify-start">
             <div >
               <Label>Style Preset</Label>
@@ -122,21 +219,6 @@ export function ShortGenerator({
                   {styles.map(s => (
                     <SelectItem key={s.name} value={s.name}>
                       {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div >
-              <Label>Art Style Preset</Label>
-              <Select value={selectedArtStyle ? selectedArtStyle.name : ""} onValueChange={handleArtStyleChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an art style" />
-                </SelectTrigger>
-                <SelectContent>
-                  {artStyles.map(a => (
-                    <SelectItem key={a.name} value={a.name}>
-                      {a.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -184,24 +266,38 @@ export function ShortGenerator({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="art-style-imagenes">Art Style Prompt (editable)</Label>
+            <div className="flex space-x-2 items-center">
+              <Label htmlFor="art-style-imagenes">Art Style Prompt</Label>
+              <Select value={selectedArtStyle ? selectedArtStyle.name : ""} onValueChange={handleArtStyleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an art style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {artStyles.map(a => (
+                    <SelectItem key={a.name} value={a.name}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Textarea
-              id="art-style-imagenes"
-              placeholder="Enter the art style"
-              value={artStyle}
-              onChange={(e) => setArtStyle(e.target.value)}
-              rows={10}
-            />
+                id="art-style-imagenes"
+                placeholder="Enter the art style"
+                value={artStyle}
+                onChange={(e) => setArtStyle(e.target.value)}
+                rows={10}
+                />
           </div>
         </CardContent>
       </Card>
-      <div className="md:col-span-3 space-y-8">
-        <div className="grid md:grid-cols-2 gap-8">
-            <CharacterCard character={character} />
-            {/* <StyleCard styleImage={styleImage} /> */}
+      <div className="flex-1 space-y-8 flex flex-col md:w-3/4">
+        <div className="grid md:grid-cols-5 gap-8 flex-1">
+          <CharacterCard character={character} />
+          <StoryCard storyboard={storyboard} onGenerateImage={onGenerateImageForScene} />
         </div>
 
-        <Card>
+        <Card className="flex-1 flex flex-col">
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Escenas</CardTitle>
@@ -219,7 +315,7 @@ export function ShortGenerator({
               Revisa las escenas y genera las imágenes con los modelos de IA.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 overflow-y-auto">
             {scenes && (
               <div>
                 <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
@@ -231,7 +327,7 @@ export function ShortGenerator({
                     tone={tone}
                     setTone={setTone}
                     character={character}
-                    styleImage={styleImage}
+                    onGenerateImageForScene={onGenerateImageForScene}
                   />
                 </div>
               </div>

@@ -21,10 +21,10 @@ interface SceneListProps {
   tone: Tone;
   setTone: (tone: Tone) => void;
   character: GenerateCharacterOutput | null;
-  styleImage: ImageOutput | null;
+  onGenerateImageForScene: (scene: Scene) => Promise<void>;
 }
 
-export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character, styleImage }: SceneListProps) {
+export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character, onGenerateImageForScene }: SceneListProps) {
   const [_scenes, _setScenes] = useState(scenes);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
           onDelete={handleDeleteScene}
           onUpdate={handleUpdateScene}
           character={character}
-          styleImage={styleImage}
+          onGenerateImageForScene={onGenerateImageForScene}
         />
       ))}
       <Button onClick={handleAddScene} variant="outline" className="w-full">

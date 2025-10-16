@@ -21,8 +21,7 @@ export type GenerateCharacterInput = z.infer<typeof GenerateCharacterInputSchema
 const CharacterDetailsSchema = z.object({
     name: z.string().describe("The character's name."),
     description: z.string().describe("A brief description of the character's personality and background."),
-    clothing: z.string().describe("Details about the character's typical clothing."),
-    skills: z.array(z.string()).describe("A list of the character's key skills or abilities."),
+    imgPrompt: z.string().describe("A detailed prompt for generating the character's image, including clothing and style."),
 });
 
 const GenerateCharacterOutputSchema = CharacterDetailsSchema.extend({
@@ -31,36 +30,26 @@ const GenerateCharacterOutputSchema = CharacterDetailsSchema.extend({
 export type GenerateCharacterOutput = z.infer<typeof GenerateCharacterOutputSchema>;
 
 
-export async function generateCharacter(input: GenerateCharacterInput): Promise<GenerateCharacterOutput> {
+export async function generateCharacterDetails(input: GenerateCharacterInput): Promise<GenerateCharacterOutput> {
   const characterDetails = await generateCharacterDetailsFlow(input);
   if (!characterDetails) {
     throw new Error('Failed to generate character details.');
   }
 
-  const imagePrompt = `Full-body portrait of a character named ${characterDetails.name}.
-Description: ${characterDetails.description}.
-Clothing: ${characterDetails.clothing}.
-Art Style: ${input.artStyle}.`;
-  
-  try {
-    const image = await generateImage({
-      prompt: imagePrompt,
-      artStyle: input.artStyle,
-      aspectRatio: '1:1',
-    });
+  return characterDetails;
+}
 
-    return {
-      ...characterDetails,
-      imageDataUri: image.imageDataUri,
-    };
-    
-  } catch (error) {
-    console.error("Error generating character image, returning details only.", error);
-    return {
-      ...characterDetails,
-      imageDataUri: undefined,
-    }
-  }
+export async function generateCharacterImage(input: { characterDetails: Omit<GenerateCharacterOutput, 'imageDataUri'>; artStyle: string; }): Promise<{
+    imageDataUri: string;
+}> {
+  const { characterDetails, artStyle } = input;
+  const characterImage = generateImage({
+            prompt: `Full-body portrait of a character named ${characterDetails.name}.
+              imgPrompt: ${characterDetails.imgPrompt}.`,
+            artStyle: artStyle,
+            aspectRatio: '1:1',
+  });
+  return characterImage;
 }
 
 const generateCharacterDetailsFlow = ai.defineFlow(

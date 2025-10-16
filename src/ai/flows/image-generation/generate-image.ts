@@ -26,37 +26,21 @@ const generateImageFlow = ai.defineFlow(
     outputSchema: ImageOutputSchema,
   },
   async input => {
-    console.log('Generating image with multi-model logic:', input);
+    console.log('Generating image with multi-model logic:', input.prompt.substring(0, 50), '...');
 
     // 1. Enhance the prompt
     let finalPrompt = input.prompt + (input.artStyle ? '. \n Keep the Art Style: ' + input.artStyle : '');
     const {enhancedPrompt} = await promptEnhancerImagen({prompt: finalPrompt});
     finalPrompt = enhancedPrompt ?? finalPrompt;
 
-    console.log('Final enhanced prompt for image generation: ', finalPrompt);
     // 2. Decide which model to use
-    if (input.characterImageDataUri || input.styleImageDataUri) {
-      // Use Gemini for image-to-image/reference generation
-      console.log('Using Gemini with reference images.');
+    if (input.characterImageDataUri) {
       try {
-        const promptParts: (
-          | {text: string}
-          | {media: {url: string; contentType?: string}}
-        )[] = [];
-        
-        let textPrompt = `Create a new scene based on the following prompt: ${finalPrompt}.`;
-
-        if (input.characterImageDataUri) {
-          promptParts.push({ media: { url: input.characterImageDataUri }});
-          textPrompt += ` Use the character in the first image as a reference.`
-        }
-        promptParts.push({ text: textPrompt });
-
-        return generateWithNanoBana(promptParts);
+        // Use Gemini for image-to-image/reference generation
+        return generateWithNanoBana(finalPrompt, input.characterImageDataUri);
       } catch (error) {
         console.error('Error in Gemini generation, falling back to Imagen: ', error);
-        // Fallback to Imagen if Gemini fails
-        return generateWithImagen(finalPrompt, input.aspectRatio);
+        return generateWithImagen(finalPrompt, input.aspectRatio); // Fallback to Imagen if Gemini fails
       }
     } else {
       // Use Imagen for text-to-image generation
@@ -91,8 +75,22 @@ async function generateWithImagen(
   }
 }
 
-async function generateWithNanoBana(promptParts: (| { text: string }| { media: { url: string; contentType?: string } })[]): Promise<ImageOutput> {
+async function generateWithNanoBana(prompt: string, characterImageDataUri: string): Promise<ImageOutput> {
+  console.log('Using Gemini with reference images.');
   try {
+    const promptParts: (
+      | {text: string}
+      | {media: {url: string; contentType?: string}}
+    )[] = [];
+    
+    let textPrompt = `${prompt}.`;
+
+    if (characterImageDataUri) {
+      promptParts.push({ media: { url: characterImageDataUri }});
+      textPrompt += ` Use the character in the first image as a reference.`
+    }
+    promptParts.push({ text: textPrompt });
+    console.log('Final enhanced prompt for image generation: ', textPrompt.substring(0, 100), '...');
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: promptParts,

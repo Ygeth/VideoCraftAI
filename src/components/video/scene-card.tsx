@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Trash2, Loader2, Sparkles, AudioLines, Image as ImageIcon } from 'lucide-react';
-import { generateImage } from '@/ai/flows/image-generation/generate-image';
 import { useToast } from '@/hooks/use-toast';
 import { downloadFile } from '@/services/aiAgentsTools';
 import {
@@ -32,11 +31,10 @@ interface SceneCardProps {
   onDelete: (index: number) => void;
   onUpdate: (index: number, updatedScene: Scene) => void;
   character: GenerateCharacterOutput | null;
-  styleImage: ImageOutput | null;
+  onGenerateImageForScene: (scene: Scene) => Promise<void>;
 }
 
-export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate, character, styleImage }: SceneCardProps) {
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDelete, onUpdate, character, onGenerateImageForScene }: SceneCardProps) {
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const { toast } = useToast();
 
@@ -75,29 +73,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
     onUpdate(sceneIndex, { ...scene, motionScene: e.target.value });
   };
 
-  const handleGenerateImage = async () => {
-    setIsGeneratingImage(true);
-    try {
-      const { imageDataUri } = await generateImage({ 
-        prompt: scene.imgPrompt,
-        artStyle: artStyle,
-        aspectRatio: aspectRatio,
-        characterImageDataUri: character?.imageDataUri,
-        styleImageDataUri: styleImage?.imageDataUri,
-      });
-      onUpdate(sceneIndex, { ...scene, imageUrl: imageDataUri });
-    } catch (error) {
-      console.error('Failed to generate image:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Image generation failed',
-        description: 'Could not generate the image for this scene. Please try again.',
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
   const imageSrc = scene.imageUrl || `https://picsum.photos/seed/${sceneIndex + 1}/720/1280`;
 
   return (
@@ -106,12 +81,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
         <Dialog>
           <DialogTrigger asChild>
             <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center relative cursor-pointer w-32 flex-shrink-0">
-              {isGeneratingImage ? (
-                <div className="flex flex-col items-center justify-center text-primary">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <p className="mt-2 text-sm">Generating...</p>
-                </div>
-              ) : (
                 <>
                   <Image
                     src={imageSrc}
@@ -122,7 +91,6 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
                   />
                   <div className="absolute inset-0 bg-black/20 hover:bg-black/10 transition-colors" />
                 </>
-              )}
             </div>
           </DialogTrigger>
           <DialogContent className="max-w-4xl h-[90vh]">
@@ -180,8 +148,8 @@ export function SceneCard({ scene, sceneIndex, artStyle, aspectRatio, tone, onDe
             </div>
           <div className="flex items-center justify-between mt-auto pt-2 gap-2">
               <div className="flex gap-2 flex-wrap">
-                <Button onClick={handleGenerateImage} disabled={isGeneratingImage} variant="outline" size="sm">
-                  {isGeneratingImage ? <Loader2 className="animate-spin" /> : <ImageIcon />}
+                <Button onClick={() => onGenerateImageForScene(scene)} disabled={false} variant="outline" size="sm">
+                  <ImageIcon />
                   Generate Image
                 </Button>
                 {scene.videoTTSId && (
