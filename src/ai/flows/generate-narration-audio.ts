@@ -36,7 +36,7 @@ const generateNarrationAudioFlow = ai.defineFlow(
     console.log('Generating narration audio with Gemini TTS:', input);
     try {
       const {media} = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-preview-tts',
+        model: 'googleai/gemini-2.5-flash-tts',
         config: {
           responseModalities: ['AUDIO'],
           speechConfig: {

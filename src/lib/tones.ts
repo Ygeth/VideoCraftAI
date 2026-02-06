@@ -6,6 +6,11 @@ export interface Tone {
 
 export const tones: Tone[] = [
   {
+    name: 'M Español Narrador',
+    voice: 'Enceladus',
+    tonePrompt: 'Español de España (Castellano): ',
+  },
+  {
     name: 'F Standard',
     voice: 'Autonoe',
     tonePrompt: 'In a clear and engaging tone: ',

@@ -53,6 +53,8 @@ export const StoryboardSceneSchema = z.object({
   music: z.string().describe('A description of the background music for the scene.').optional(),
   voiceover: z.string().describe('The voiceover text for the scene.').optional(),
   imageUrl: z.string().optional().describe('The URL of the generated image for this scene. NOT FILL BY THE LLM'),
+  audioUrl: z.string().optional().describe('The URL of the generated audio for this scene.'),
+  audioStorageId: z.string().optional().describe('The storage ID of the audio in the media storage service.'),
 });
 export type StoryboardScene = z.infer<typeof StoryboardSceneSchema>;
 

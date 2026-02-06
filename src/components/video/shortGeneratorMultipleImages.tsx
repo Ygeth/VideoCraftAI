@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { SceneListMultipleImages } from "@/components/video/scene-list-multiple-images";
-import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateScriptShortOutput } from '@/ai/flows/text/generate-script-short-gemini';
 import { Tone } from '@/lib/tones';
 import { Style, styles } from "@/lib/styles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -152,7 +152,7 @@ export function ShortGeneratorMultipleImages({
             <div className="flex gap-2">
               <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || !!isLoadingVideo || !!isLoading}>
                 {(isLoadingImages || isLoadingAudio || isLoadingVideo) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Generate Video
+                Generate Video
               </Button>
               <Button onClick={onDownloadFinalVideo} disabled={!finalVideoId}>
                 Download Video

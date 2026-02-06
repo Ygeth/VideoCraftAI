@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { SceneCardMultipleImages } from './scene-card-multiple-images';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { GenerateScriptShortOutput } from '@/ai/flows/text/generate-script-short-gemini';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { tones, Tone } from '@/lib/tones';
@@ -46,10 +46,10 @@ export function SceneListMultipleImages({ scenes, onScenesChange, artStyle, aspe
 
   const handleAddScene = () => {
     const newScene: Scene = {
-        id: new Date().toISOString(),
-        narrator: 'New scene narration.',
-        imgPrompt: 'A new image prompt.',
-        motionScene: 'Static scene, no movement.',
+      id: new Date().toISOString(),
+      narrator: 'New scene narration.',
+      imgPrompt: 'A new image prompt.',
+      motionScene: 'Static scene, no movement.',
     };
     const newScenes = [..._scenes, newScene];
     handleSceneUpdate(newScenes);

@@ -14,12 +14,20 @@ import { useState } from "react";
 import { RectangleHorizontal, RectangleVertical, Square, Sparkles, User } from "lucide-react";
 import { CharacterCard } from "./character-card";
 import { StoryCard } from "./story-card";
-import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/text/generate-script-short-gemini';
 import { generateCharacterDetails, generateCharacterImage, GenerateCharacterOutput } from '@/ai/flows/generate-character';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
 import { generateScriptStoryboard } from '@/ai/flows/storyboard/generate-script-storyboard';
 import { StoryboardOutput } from '@/ai/flows/storyboard/schemas';
 import { ImageOutput } from '@/ai/flows/image-generation/schemas';
+import { generateSpeech } from '@/ai/flows/speech/generate-speech-gemini';
+import { saveFile } from '@/services/aiAgentsTools';
+
+async function dataUriToToFile(dataUri: string, fileName: string): Promise<File> {
+  const response = await fetch(dataUri);
+  const blob = await response.blob();
+  return new File([blob], fileName, { type: blob.type });
+}
 
 type Scene = GenerateScriptShortOutput['scenes'][0];
 
@@ -34,6 +42,7 @@ interface shortGeneratorProps {
   isLoadingVideo: boolean;
   onGenerateScript: () => void;
   onGenerateVideo: (scenes: Scene[]) => void;
+  onGenerateAudio: (scene: Scene) => Promise<void>;
   onToast: (options: { title: string; description?: string; variant?: 'default' | 'destructive' }) => void;
   scenes: GenerateScriptShortOutput;
   // character: GenerateCharacterOutput | null;
@@ -67,6 +76,7 @@ export function ShortGenerator({
   style,
   setStyle,
   onGenerateVideo,
+  onGenerateAudio,
 }: shortGeneratorProps) {
   const [isLoadingCharacter, setIsLoadingCharacter] = useState<boolean | null>(false);
   const [isLoadingStoryboard, setIsLoadingStoryboard] = useState<boolean | null>(false);
@@ -97,10 +107,10 @@ export function ShortGenerator({
     try {
       const characterDetails = await generateCharacterDetails({ story, artStyle });
       const characterImage = await generateCharacterImage({ characterDetails, artStyle });
-      
+
       const fullCharacter: GenerateCharacterOutput = {
-          ...characterDetails,
-          imageDataUri: characterImage.imageDataUri,
+        ...characterDetails,
+        imageDataUri: characterImage.imageDataUri,
       }
 
       setCharacter(fullCharacter);
@@ -141,7 +151,7 @@ export function ShortGenerator({
     let prompt =
       `Generate a detailed image for the following scene description: ${sceneToUpdate?.description}.
       imagePrompt: ${sceneToUpdate?.imagePrompt}.`;
-    
+
     try {
       const image: ImageOutput = await generateImage({
         prompt: prompt,
@@ -181,9 +191,53 @@ export function ShortGenerator({
 
   const selectedArtStyle = artStyles.find(a => a.prompt === artStyle);
 
+  const onGenerateVoiceoverForStoryboard = async (sceneIndex: number, text: string) => {
+    onToast({ title: 'Generating voiceover...' });
+    const sceneToUpdate = storyboard?.scenes[sceneIndex];
+    if (!text) {
+      onToast({ variant: 'destructive', title: 'No voiceover text', description: 'Please add voiceover text to the scene.' });
+      return;
+    }
+
+    try {
+      const audio = await generateSpeech({
+        text: text,
+        voice: tone.voice,
+        tonePrompt: tone.tonePrompt,
+      });
+
+      if (!audio || !audio.audioDataUri) {
+        throw new Error('Audio generation returned no data URI.');
+      }
+
+      // let audioStorageId: string | undefined;
+      // if (audio.audioDataUri.startsWith('data:')) {
+      //   const audioFile = await dataUriToToFile(audio.audioDataUri, `storyboard-scene-${sceneIndex}.mp3`);
+      //   const result = await saveFile(audioFile, 'audio');
+      //   audioStorageId = result.file_id;
+      // }
+
+      if (storyboard) {
+        const updatedScenes = storyboard.scenes.map((scene, index) =>
+          index === sceneIndex ? { ...scene, voiceover: text, audioUrl: audio.audioDataUri } : scene
+        );
+        setStoryboard({ ...storyboard, scenes: updatedScenes });
+      }
+      onToast({ title: 'Voiceover Generated Successfully' });
+
+    } catch (error) {
+      console.error('Error generating voiceover:', error);
+      onToast({
+        variant: 'destructive',
+        title: 'Voiceover generation failed',
+        description: 'Could not generate the voiceover. Please try again.',
+      });
+    }
+  };
+
   return (
-    <div className="flex flex-col md:flex-row h-full w-full gap-8">
-      <Card className="w-full md:w-1/4 flex flex-col">
+    <div className="flex flex-col md:flex-row h-full w-full gap-8 p-6">
+      <Card className="w-full md:w-1/4 flex flex-col glass-card border-none bg-black/20 text-white">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Guion y Estilo</CardTitle>
@@ -230,7 +284,10 @@ export function ShortGenerator({
                 <Button
                   variant={aspectRatio === '1:1' ? 'secondary' : 'outline'}
                   onClick={() => setAspectRatio('1:1')}
-                  className="flex items-center space-x-2"
+                  className={aspectRatio === '1:1'
+                    ? "flex items-center space-x-2 bg-white text-black hover:bg-white/90 border-none"
+                    : "flex items-center space-x-2 border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white"
+                  }
                 >
                   <Square className="h-5 w-5" />
                   <span>1:1</span>
@@ -238,7 +295,10 @@ export function ShortGenerator({
                 <Button
                   variant={aspectRatio === '9:16' ? 'secondary' : 'outline'}
                   onClick={() => setAspectRatio('9:16')}
-                  className="flex items-center space-x-2"
+                  className={aspectRatio === '9:16'
+                    ? "flex items-center space-x-2 bg-white text-black hover:bg-white/90 border-none"
+                    : "flex items-center space-x-2 border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white"
+                  }
                 >
                   <RectangleVertical className="h-5 w-5" />
                   <span>9:16</span>
@@ -246,14 +306,17 @@ export function ShortGenerator({
                 <Button
                   variant={aspectRatio === '16:9' ? 'secondary' : 'outline'}
                   onClick={() => setAspectRatio('16:9')}
-                  className="flex items-center space-x-2"
+                  className={aspectRatio === '16:9'
+                    ? "flex items-center space-x-2 bg-white text-black hover:bg-white/90 border-none"
+                    : "flex items-center space-x-2 border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white"
+                  }
                 >
                   <RectangleHorizontal className="h-5 w-5" />
                   <span>16:9</span>
                 </Button>
               </div>
             </div>
-            
+
           </div>
           <div className="grid gap-2">
             <Label htmlFor="story-imagenes">Guion (Story)</Label>
@@ -282,29 +345,38 @@ export function ShortGenerator({
               </Select>
             </div>
             <Textarea
-                id="art-style-imagenes"
-                placeholder="Enter the art style"
-                value={artStyle}
-                onChange={(e) => setArtStyle(e.target.value)}
-                rows={10}
-                />
+              id="art-style-imagenes"
+              placeholder="Enter the art style"
+              value={artStyle}
+              onChange={(e) => setArtStyle(e.target.value)}
+              rows={10}
+            />
           </div>
         </CardContent>
       </Card>
       <div className="flex-1 space-y-8 flex flex-col md:w-3/4">
         <div className="grid md:grid-cols-5 gap-8 flex-1">
           <CharacterCard character={character} />
-          <StoryCard storyboard={storyboard} onGenerateImage={onGenerateImageForScene} />
+          <StoryCard
+            storyboard={storyboard}
+            onGenerateImage={onGenerateImageForScene}
+            onGenerateVoiceover={onGenerateVoiceoverForStoryboard}
+            onStoryboardChange={(newStoryboard) => {
+              if (newStoryboard) {
+                setStoryboard(newStoryboard);
+              }
+            }}
+          />
         </div>
 
-        <Card className="flex-1 flex flex-col">
+        <Card className="flex-1 flex flex-col glass-card border-none bg-black/20 text-white">
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Escenas</CardTitle>
               <div className="flex gap-2">
                 <Button onClick={() => onGenerateVideo(scenes.scenes)} disabled={!!isLoadingImages || !!isLoadingAudio || !!isLoadingVideo || !!isLoading}>
                   {(isLoadingImages || isLoadingAudio || isLoadingVideo) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Generate Video
+                  Generate Video
                 </Button>
                 <Button onClick={onDownloadFinalVideo} disabled={!finalVideoId}>
                   Download Video
@@ -318,7 +390,7 @@ export function ShortGenerator({
           <CardContent className="flex-1 overflow-y-auto">
             {scenes && (
               <div>
-                <div className="rounded-md border bg-muted p-4 max-h-[70vh] overflow-y-auto">
+                <div className="rounded-md border bg-black/20 backdrop-blur-sm border-white/5 p-4 max-h-[70vh] overflow-y-auto">
                   <SceneList
                     scenes={scenes.scenes}
                     onScenesChange={handleScenesChange}
@@ -328,6 +400,7 @@ export function ShortGenerator({
                     setTone={setTone}
                     character={character}
                     onGenerateImageForScene={onGenerateImageForScene}
+                    onGenerateAudio={onGenerateAudio}
                   />
                 </div>
               </div>

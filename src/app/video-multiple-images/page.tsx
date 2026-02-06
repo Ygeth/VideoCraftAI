@@ -5,7 +5,7 @@ import { ShortGeneratorMultipleImages } from '@/components/video/shortGeneratorM
 import { Scene, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { useState } from 'react';
 import defaultScenes from '@/lib/default-scenes.json';
-import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/text/generate-script-short-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColorkeyOverlay, checkStatus } from '@/services/aiAgentsTools';
 import { audioTestData } from '@/lib/audio-test-data';
@@ -14,7 +14,7 @@ import { SelectLabel } from '@radix-ui/react-select';
 // import { generateImageGemini } from '@/ai/flows/image-generation/generate-image-gemini';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
 // import { generateImage as generateImageFal } from '@/ai/flows/image-generation/generate-image-fal';
-import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
+import { generateSpeech } from '@/ai/flows/speech/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { TaskQueue } from '@/lib/queue';
@@ -53,7 +53,7 @@ export default function VideoMultipleImagesPage() {
       toast({ title: 'Script Scenes Generated Successfully' });
 
       setIsLoading('Generating images, audio and videos...');
-      
+
       const imageQueue = new TaskQueue(6000); // 10 images per minute
       const audioQueue = new TaskQueue(1000); // No limit specified, using 1 second
       const videoQueue = new TaskQueue(1000); // No limit specified, using 1 second
@@ -72,7 +72,7 @@ export default function VideoMultipleImagesPage() {
 
         setScenes(prevScenes => ({
           ...prevScenes,
-          scenes: prevScenes.scenes.map(s => 
+          scenes: prevScenes.scenes.map(s =>
             s.id === scene.id ? { ...s, imageStorageId: imageIds?.startImageId, audioStorageId: audioId, videoTTSId: videoTTSId } : s
           )
         }));
@@ -110,7 +110,7 @@ export default function VideoMultipleImagesPage() {
     }
   };
 
-  const generateImageForScene = async (scene: Scene): Promise<{startImageId?: string, endImageId?: string} | undefined> => {
+  const generateImageForScene = async (scene: Scene): Promise<{ startImageId?: string, endImageId?: string } | undefined> => {
     setIsLoadingImages(true);
     try {
       const startImage = await generateImage({ prompt: scene.imgPromptStart, artStyle: artStyle });
@@ -193,15 +193,15 @@ export default function VideoMultipleImagesPage() {
         title: `Video generation failed for scene ${scene.id}`,
         description: 'Could not generate the video for this scene. Please try again.',
       });
-    }finally {
+    } finally {
       setIsLoadingVideo(false);
     }
   };
-  
+
 
   const generateVideo = async (scenes: Scene[]) => {
     try {
-      
+
       const finalVideo = await mergeVideos(scenes.map(s => s.videoTTSId).filter((id): id is string => !!id), backgroundMusicId, 0.3);
       console.log('Final video ID:', finalVideo);
 
@@ -216,7 +216,7 @@ export default function VideoMultipleImagesPage() {
         await pollFileStatus(savedOverlay.file_id);
         const videoWithOverlay = await addColorkeyOverlay(finalVideo.file_id, savedOverlay.file_id, '#000000');
         await pollFileStatus(videoWithOverlay.file_id);
-        
+
         setFinalVideoId(videoWithOverlay.file_id);
       } else {
         setFinalVideoId(finalVideo.file_id);
@@ -277,7 +277,7 @@ export default function VideoMultipleImagesPage() {
         <h1 className="text-4xl font-bold">Video Multiple Images</h1>
       </div>
 
-      <ShortGeneratorMultipleImages 
+      <ShortGeneratorMultipleImages
         story={story}
         setStory={setStory}
         artStyle={artStyle}
@@ -286,8 +286,8 @@ export default function VideoMultipleImagesPage() {
         isLoadingImages={isLoadingImages}
         isLoadingAudio={isLoadingAudio}
         isLoadingVideo={isLoadingVideo}
-        onGenerateScript={ generateScript }
-        onGenerateVideo={ generateVideo }
+        onGenerateScript={generateScript}
+        onGenerateVideo={generateVideo}
         scenes={scenes}
         setScenes={setScenes}
         finalVideoId={finalVideoId}

@@ -5,11 +5,11 @@ import { ShortGenerator } from '@/components/video/shortGenerator';
 import { Scene, ImageOutput } from '@/ai/flows/image-generation/schemas';
 import { useState } from 'react';
 import defaultScenes from '@/lib/default-scenes.json';
-import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/image-generation/generate-script-short-gemini';
+import { generateScriptShort, GenerateScriptShortOutput } from '@/ai/flows/text/generate-script-short-gemini';
 import { useToast } from '@/hooks/use-toast';
 import { saveFile, generateTTSCaptionedVideo, downloadFile, mergeVideos, addColorkeyOverlay, checkStatus } from '@/services/aiAgentsTools';
 import { generateImage } from '@/ai/flows/image-generation/generate-image';
-import { generateSpeech } from '@/ai/flows/image-generation/generate-speech-gemini';
+import { generateSpeech } from '@/ai/flows/speech/generate-speech-gemini';
 import { tones, defaultTone, Tone } from '@/lib/tones';
 import { styles, defaultStyle, Style } from '@/lib/styles';
 import { TaskQueue } from '@/lib/queue';
@@ -45,7 +45,7 @@ export default function ShortVideosPage() {
     setIsLoading('Generating script...');
     try {
       const scriptOutput: GenerateScriptShortOutput = await generateScriptShort({ story, artStyle });
-      
+
       // Assign a unique ID to each scene for keying purposes in React
       const scenesWithIds = scriptOutput.scenes.map(scene => ({
         ...scene,
@@ -58,20 +58,20 @@ export default function ShortVideosPage() {
       toast({ title: 'Script Scenes Generated Successfully' });
 
       setIsLoading('Generating images and audio...');
-      
+
       const imageQueue = new TaskQueue(6000); // 10 images per minute
-      
+
       const processScene = async (scene: Scene) => {
         const imageUrl = await generateImageForScene(scene);
         // const audioId = await generateAudioForScene(scene);
-        
+
         // This is a simplified flow. In a real-world scenario, you might want to wait
         // for image/audio to be processed before generating the video for that scene.
         // For now, we'll just update the state as things complete.
 
         setScenes(prevScenes => ({
           ...prevScenes,
-          scenes: prevScenes.scenes.map(s => 
+          scenes: prevScenes.scenes.map(s =>
             s.id === scene.id ? { ...s, imageUrl } : s
           )
         }));
@@ -98,7 +98,7 @@ export default function ShortVideosPage() {
   const generateImageForScene = async (scene: Scene): Promise<string | undefined> => {
     setIsLoadingImages(true);
     try {
-      const image = await generateImage({ 
+      const image = await generateImage({
         prompt: scene.imgPrompt,
         artStyle: artStyle,
         aspectRatio: "9:16",
@@ -126,7 +126,7 @@ export default function ShortVideosPage() {
         text: scene.narrator,
         voice: tone.voice,
         tonePrompt: tone.tonePrompt,
-      }); 
+      });
       scene.audioUrl = audio.audioDataUri;
       if (audio.audioDataUri && audio.audioDataUri.startsWith('data:')) {
         const audioFile = await dataUriToToFile(audio.audioDataUri, `scene-${scene.id}.mp3`);
@@ -167,16 +167,29 @@ export default function ShortVideosPage() {
         title: `Video generation failed for scene ${scene.id}`,
         description: 'Could not generate the video for this scene. Please try again.',
       });
-    }finally {
+    } finally {
       setIsLoadingVideo(false);
     }
     return undefined;
   };
-  
+
+
+  const handleGenerateAudio = async (scene: Scene) => {
+    const audioId = await generateAudioForScene(scene);
+    if (audioId) {
+      setScenes(prevScenes => ({
+        ...prevScenes,
+        scenes: prevScenes.scenes.map(s =>
+          s.id === scene.id ? { ...s, audioStorageId: audioId, audioUrl: scene.audioUrl } : s
+        )
+      }));
+      toast({ title: 'Audio Generated Successfully' });
+    }
+  };
 
   const generateVideo = async (scenes: Scene[]) => {
     try {
-      
+
       const finalVideo = await mergeVideos(scenes.map(s => s.videoTTSId).filter((id): id is string => !!id), backgroundMusicId, 0.3);
       console.log('Final video ID:', finalVideo);
 
@@ -191,7 +204,7 @@ export default function ShortVideosPage() {
         await pollFileStatus(savedOverlay.file_id);
         const videoWithOverlay = await addColorkeyOverlay(finalVideo.file_id, savedOverlay.file_id, '#000000');
         await pollFileStatus(videoWithOverlay.file_id);
-        
+
         setFinalVideoId(videoWithOverlay.file_id);
       } else {
         setFinalVideoId(finalVideo.file_id);
@@ -248,12 +261,17 @@ export default function ShortVideosPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 w-full">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl font-bold">Short Videos</h1>
+    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center p-6 md:p-12 w-full relative overflow-hidden">
+      {/* Decorative background for Video Page */}
+      <div className="absolute top-[10%] left-[10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 animate-pulse delay-700" />
+
+      <div className="z-10 w-full max-w-[1600px] items-center justify-between font-mono text-sm lg:flex mb-8">
+        <h1 className="text-4xl md:text-5xl font-bold font-headline bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80 text-glow">
+          Short Videos
+        </h1>
       </div>
 
-      <ShortGenerator 
+      <ShortGenerator
         story={story}
         setStory={setStory}
         artStyle={artStyle}
@@ -262,8 +280,9 @@ export default function ShortVideosPage() {
         isLoadingImages={isLoadingImages}
         isLoadingAudio={isLoadingAudio}
         isLoadingVideo={isLoadingVideo}
-        onGenerateScript={ generateScript }
-        onGenerateVideo={ generateVideo }
+        onGenerateScript={generateScript}
+        onGenerateVideo={generateVideo}
+        onGenerateAudio={handleGenerateAudio}
         onToast={toast}
         scenes={scenes}
         setScenes={setScenes}

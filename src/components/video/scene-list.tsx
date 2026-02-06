@@ -22,9 +22,10 @@ interface SceneListProps {
   setTone: (tone: Tone) => void;
   character: GenerateCharacterOutput | null;
   onGenerateImageForScene: (scene: Scene) => Promise<void>;
+  onGenerateAudio: (scene: Scene) => Promise<void>;
 }
 
-export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character, onGenerateImageForScene }: SceneListProps) {
+export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone, setTone, character, onGenerateImageForScene, onGenerateAudio }: SceneListProps) {
   const [_scenes, _setScenes] = useState(scenes);
 
   useEffect(() => {
@@ -49,10 +50,10 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
 
   const handleAddScene = () => {
     const newScene: Scene = {
-        id: Math.random().toString(36).substring(7),
-        narrator: 'New scene narration.',
-        imgPrompt: 'A new image prompt.',
-        motionScene: 'Static scene, no movement.',
+      id: Math.random().toString(36).substring(7),
+      narrator: 'New scene narration.',
+      imgPrompt: 'A new image prompt.',
+      motionScene: 'Static scene, no movement.',
     };
     const newScenes = [..._scenes, newScene];
     handleSceneUpdate(newScenes);
@@ -98,6 +99,7 @@ export function SceneList({ scenes, onScenesChange, artStyle, aspectRatio, tone,
           onUpdate={handleUpdateScene}
           character={character}
           onGenerateImageForScene={onGenerateImageForScene}
+          onGenerateAudio={onGenerateAudio}
         />
       ))}
       <Button onClick={handleAddScene} variant="outline" className="w-full">

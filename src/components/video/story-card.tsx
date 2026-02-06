@@ -6,7 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from 'react';
+
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { VisuallyHidden } from "../ui/visually-hidden";
 import Image from "next/image";
@@ -14,49 +14,45 @@ import Image from "next/image";
 interface StoryCardProps {
   storyboard: StoryboardOutput | undefined;
   onGenerateImage?: (sceneIndex: number) => void;
+  onGenerateVoiceover?: (sceneIndex: number, text: string) => void;
+  onStoryboardChange?: (storyboard: StoryboardOutput) => void;
 }
 
-export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
-  const [editableStoryboard, setEditableStoryboard] = useState<StoryboardOutput | undefined>(storyboard);
+export function StoryCard({ storyboard, onGenerateImage, onGenerateVoiceover, onStoryboardChange }: StoryCardProps) {
 
-  useEffect(() => {
-    setEditableStoryboard(storyboard);
-  }, [storyboard]);
+  if (!storyboard) {
+    return (
+      <Card className="md:col-span-3 glass-card border-none bg-black/20 text-white">
+        <CardHeader>
+          <CardTitle>Storyboard</CardTitle>
+          <CardDescription className="text-white/60">visual representation of the story scenes.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-white/40">No storyboard generated yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const handleSceneChange = (index: number, field: keyof StoryboardOutput['scenes'][0], value: string) => {
+    if (onStoryboardChange && storyboard) {
+      const newScenes = [...storyboard.scenes];
+      newScenes[index] = { ...newScenes[index], [field]: value };
+      onStoryboardChange({ ...storyboard, scenes: newScenes });
+    }
+  };
 
   return (
-    <Card className="md:col-span-3">
+    <Card className="md:col-span-3 glass-card border-none bg-black/20 text-white">
       <CardHeader>
         <CardTitle>Storyboard</CardTitle>
-        <CardDescription>Visual representation of the story scenes.</CardDescription>
+        <CardDescription className="text-white/60">Visual representation of the story scenes.</CardDescription>
       </CardHeader>
       <CardContent >
         <div className="flex justify-start">
-          {/* <section className="w-1/3">
-            <h2 className="text-lg font-bold">Story</h2>
-            {storyboard ? (
-              <div className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger><h3 className="font-semibold">Refined Story</h3></AccordionTrigger>
-                    <AccordionContent>
-                      <p>{storyboard.story}</p>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger><h3 className="font-semibold">Technical Guide</h3></AccordionTrigger>
-                    <AccordionContent>
-                      <p>{storyboard.technicalGuide}</p>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-                </div>
-            ) : (
-              <p>No storyboard generated yet.</p>
-            )}
-          </section> */}
           <section className="w-full ml-6">
             <h2 className="text-lg font-bold">Scenes</h2>
-            {editableStoryboard?.scenes.map((scene, index) => (
+            {storyboard.scenes.map((scene, index) => (
               <div className="" key={index}>
                 <div className="space-y-4">
                   <Accordion type="single" collapsible className="w-full">
@@ -68,29 +64,29 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                         {/* Image Preview */}
                         {scene.imageUrl && (
                           <Dialog>
-                              <DialogTrigger asChild>
-                                  <div className="aspect-[1/1] w-auto h-52 bg-muted rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer">
-                                    <Image
-                                      src={scene.imageUrl}
-                                      alt="Scene Preview"
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  </div>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl h-[90vh]">
-                                  <VisuallyHidden>
-                                      <DialogTitle>Scene Preview</DialogTitle>
-                                  </VisuallyHidden>
-                                  <div className="w-full h-full relative">
-                                      <Image
-                                          src={scene.imageUrl}
-                                          alt="Character Preview"
-                                          fill
-                                          className="object-contain rounded-lg"
-                                      />
-                                  </div>
-                              </DialogContent>
+                            <DialogTrigger asChild>
+                              <div className="aspect-[1/1] w-auto h-52 bg-muted rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer">
+                                <Image
+                                  src={scene.imageUrl}
+                                  alt="Scene Preview"
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl h-[90vh]">
+                              <VisuallyHidden>
+                                <DialogTitle>Scene Preview</DialogTitle>
+                              </VisuallyHidden>
+                              <div className="w-full h-full relative">
+                                <Image
+                                  src={scene.imageUrl}
+                                  alt="Character Preview"
+                                  fill
+                                  className="object-contain rounded-lg"
+                                />
+                              </div>
+                            </DialogContent>
                           </Dialog>
                         )}
 
@@ -100,13 +96,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Title:</strong>
                             <Input
                               value={scene.title || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], title: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'title', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -114,13 +104,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Description:</strong>
                             <Textarea
                               value={scene.description || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], description: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'description', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -128,13 +112,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">imagePrompt:</strong>
                             <Textarea
                               value={scene.imagePrompt || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], imagePrompt: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'imagePrompt', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -142,13 +120,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Shot Type:</strong>
                             <Input
                               value={scene.shotType || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], shotType: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'shotType', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -156,13 +128,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Camera Angle:</strong>
                             <Input
                               value={scene.cameraAngle || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], cameraAngle: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'cameraAngle', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -170,13 +136,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Lighting:</strong>
                             <Input
                               value={scene.lighting || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], lighting: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'lighting', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -184,13 +144,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Mood:</strong>
                             <Input
                               value={scene.mood || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], mood: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'mood', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -198,13 +152,7 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Music:</strong>
                             <Input
                               value={scene.music || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], music: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
+                              onChange={(e) => handleSceneChange(index, 'music', e.target.value)}
                               className="ml-2 flex-grow"
                             />
                           </div>
@@ -212,17 +160,18 @@ export function StoryCard({ storyboard, onGenerateImage }: StoryCardProps) {
                             <strong className="w-24">Voiceover:</strong>
                             <Input
                               value={scene.voiceover || ''}
-                              onChange={(e) => {
-                                if (editableStoryboard) {
-                                  const newScenes = [...editableStoryboard.scenes];
-                                  newScenes[index] = { ...newScenes[index], voiceover: e.target.value };
-                                  setEditableStoryboard({ ...editableStoryboard, scenes: newScenes });
-                                }
-                              }}
-                              className="ml-2 flex-grow"
+                              onChange={(e) => handleSceneChange(index, 'voiceover', e.target.value)}
                             />
                           </div>
-                          <Button onClick={() => onGenerateImage && onGenerateImage(index)} className="mt-2">Generate Image</Button>
+                          {scene.audioUrl && (
+                            <audio controls src={scene.audioUrl} className="w-full h-10 mt-2 opacity-80 hover:opacity-100 transition-opacity">
+                              Your browser does not support the audio element.
+                            </audio>
+                          )}
+                          <div className="flex gap-2 mt-2">
+                            <Button onClick={() => onGenerateImage && onGenerateImage(index)}>Generate Image</Button>
+                            <Button onClick={() => onGenerateVoiceover && onGenerateVoiceover(index, scene.voiceover || '')} variant="secondary">Generate Voiceover</Button>
+                          </div>
                         </div>
                       </AccordionContent>
                     </AccordionItem>

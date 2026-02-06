@@ -9,11 +9,12 @@
  * - GenerateImageOutput - The return type for the generateImage function.
  */
 
-import {ai, imageAI, nanoBananaAI} from '@/ai/genkit';
-import {ImageInput, ImageInputSchema} from '@/ai/flows/image-generation/schemas';
-import {ImageOutput, ImageOutputSchema} from '@/ai/flows/image-generation/schemas';
-import {promptEnhancerImagen} from '@/ai/flows/image-generation/prompt-enchancer-img';
-import {z} from 'genkit';
+import { ai, imageAI, nanoBananaAI } from '@/ai/genkit';
+import { ImageInput, ImageInputSchema } from '@/ai/flows/image-generation/schemas';
+import { ImageOutput, ImageOutputSchema } from '@/ai/flows/image-generation/schemas';
+import { promptEnhancerImagen } from '@/ai/flows/image-generation/prompt-enchancer-img';
+import { z } from 'genkit';
+import { constructImagenPrompt, constructGeminiImagePrompt } from '@/ai/prompts/image';
 
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   return generateImageFlow(input);
@@ -29,8 +30,8 @@ const generateImageFlow = ai.defineFlow(
     console.log('Generating image with multi-model logic:', input.prompt.substring(0, 50), '...');
 
     // 1. Enhance the prompt
-    let finalPrompt = input.prompt + (input.artStyle ? '. \n Keep the Art Style: ' + input.artStyle : '');
-    const {enhancedPrompt} = await promptEnhancerImagen({prompt: finalPrompt});
+    let finalPrompt = constructImagenPrompt(input.prompt, input.artStyle);
+    const { enhancedPrompt } = await promptEnhancerImagen({ prompt: finalPrompt });
     finalPrompt = enhancedPrompt ?? finalPrompt;
 
     // 2. Decide which model to use
@@ -55,7 +56,7 @@ async function generateWithImagen(
   aspectRatio?: string
 ): Promise<ImageOutput> {
   try {
-    const {media} = await imageAI.generate({
+    const { media } = await imageAI.generate({
       prompt,
       config: {
         aspectRatio: aspectRatio ?? '1:1',
@@ -68,7 +69,7 @@ async function generateWithImagen(
       throw new Error('Imagen generation failed to return a data URI.');
     }
 
-    return {imageDataUri};
+    return { imageDataUri };
   } catch (error) {
     console.error('Error in generateWithImagen (Imagen): ', error);
     throw error;
@@ -78,20 +79,9 @@ async function generateWithImagen(
 async function generateWithNanoBana(prompt: string, characterImageDataUri: string): Promise<ImageOutput> {
   console.log('Using Gemini with reference images.');
   try {
-    const promptParts: (
-      | {text: string}
-      | {media: {url: string; contentType?: string}}
-    )[] = [];
-    
-    let textPrompt = `${prompt}.`;
-
-    if (characterImageDataUri) {
-      promptParts.push({ media: { url: characterImageDataUri }});
-      textPrompt += ` Use the character in the first image as a reference.`
-    }
-    promptParts.push({ text: textPrompt });
-    console.log('Final enhanced prompt for image generation: ', textPrompt.substring(0, 100), '...');
-    const {media} = await ai.generate({
+    const { promptParts, textPromptOnly } = constructGeminiImagePrompt(prompt, characterImageDataUri);
+    console.log('Final enhanced prompt for image generation: ', textPromptOnly.substring(0, 100), '...');
+    const { media } = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: promptParts,
       config: {
