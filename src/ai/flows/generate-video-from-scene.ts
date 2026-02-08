@@ -8,10 +8,10 @@
  * - GenerateVideoFromSceneOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import {MediaPart} from 'genkit';
-import { generateImageGemini } from './image-generation/generate-image-gemini';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { MediaPart } from 'genkit';
+import { generateImageGemini } from './image-generation/variants/generate-image-gemini';
 
 const GenerateVideoFromSceneInputSchema = z.object({
   motionScene: z.string().describe('How the scene must narration for the scene.'),
@@ -65,11 +65,11 @@ const generateVideoFromSceneFlow = ai.defineFlow(
       const base64Data = match[2];
 
       // Veo3
-      let {operation} = await ai.generate({
+      let { operation } = await ai.generate({
         model: 'googleai/veo-3.0-generate-preview',
         prompt: [
-          {text: `Animate this image based on the following scene: ${input.motionScene}. The narration is: ${input.narration}.`},
-          {media: { contentType: mimeType, url: `data:${mimeType};base64,${base64Data}` }},
+          { text: `Animate this image based on the following scene: ${input.motionScene}. The narration is: ${input.narration}.` },
+          { media: { contentType: mimeType, url: `data:${mimeType};base64,${base64Data}` } },
         ],
         config: {
           personGeneration: 'allow_adult',
@@ -100,7 +100,7 @@ const generateVideoFromSceneFlow = ai.defineFlow(
         throw new Error('Failed to find the generated video');
       }
       const videoDataUri = await downloadVideo(video);
-      return {videoDataUri};
+      return { videoDataUri };
     } catch (error) {
       console.error("Error in generateVideoFromSceneFlow: ", error);
       throw error;
@@ -112,7 +112,7 @@ async function downloadVideo(video: MediaPart): Promise<string> {
   console.log('Downloading video from Veo URL...');
   const fetch = (await import('node-fetch')).default;
   const videoUrl = `${video.media!.url}&key=${process.env.GEMINI_API_KEY}`;
-  
+
   try {
     const videoDownloadResponse = await fetch(videoUrl);
     if (

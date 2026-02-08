@@ -14,7 +14,7 @@ import { ImageInput, ImageInputSchema } from '@/ai/flows/image-generation/schema
 import { ImageOutput, ImageOutputSchema } from '@/ai/flows/image-generation/schemas';
 import { promptEnhancerImagen } from '@/ai/flows/image-generation/prompt-enchancer-img';
 import { z } from 'genkit';
-import { constructImagenPrompt, constructGeminiImagePrompt } from '@/ai/prompts/image';
+import { constructImagenPrompt, constructGeminiImagePrompt } from '@/ai/prompts/gen-image/image';
 
 export async function generateImage(input: ImageInput): Promise<ImageOutput> {
   return generateImageFlow(input);
@@ -35,7 +35,7 @@ const generateImageFlow = ai.defineFlow(
     finalPrompt = enhancedPrompt ?? finalPrompt;
 
     // 2. Decide which model to use
-    if (input.characterImageDataUri) {
+    if (input.showCharacter) {
       try {
         // Use Gemini for image-to-image/reference generation
         return generateWithNanoBana(finalPrompt, input.characterImageDataUri);
@@ -76,22 +76,32 @@ async function generateWithImagen(
   }
 }
 
-async function generateWithNanoBana(prompt: string, characterImageDataUri: string): Promise<ImageOutput> {
+async function generateWithNanoBana(prompt: string, characterImageDataUri: string | undefined): Promise<ImageOutput> {
   console.log('Using Gemini with reference images.');
   try {
     const { promptParts, textPromptOnly } = constructGeminiImagePrompt(prompt, characterImageDataUri);
     console.log('Final enhanced prompt for image generation: ', textPromptOnly.substring(0, 100), '...');
-    const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image-preview',
+
+    // Use the specific nanoBananaAI instance
+    const response = await nanoBananaAI.generate({
       prompt: promptParts,
       config: {
         responseModalities: ['IMAGE'],
       },
     });
 
+    console.log('Gemini response received.');
+    const media = response.media;
+
+    if (media) {
+      console.log('Media found in response:', media.contentType, media.url ? media.url.substring(0, 50) + '...' : 'NO URL');
+    } else {
+      console.log('No media found in response.');
+    }
+
     const imageDataUri = media?.url;
     if (!imageDataUri) {
-      throw new Error('Gemini generation failed to return a data URI.');
+      throw new Error('Gemini generation failed to return a data URI.:' + response.message);
     }
     return { imageDataUri };
   } catch (error) {

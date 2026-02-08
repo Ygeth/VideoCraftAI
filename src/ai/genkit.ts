@@ -1,5 +1,5 @@
-import {genkit} from 'genkit';
-import { googleAI} from '@genkit-ai/googleai'; // GenAI
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai'; // GenAI
 
 export const ai = genkit({
   plugins: [googleAI()],
@@ -13,7 +13,7 @@ export const imageAI = genkit({
 
 export const nanoBananaAI = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-2.5-flash-image-preview',
+  model: 'googleai/gemini-2.5-flash-image',
 });
 
 export const videoAI = genkit({

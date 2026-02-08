@@ -17,7 +17,7 @@ import {
   GenerateVideoScriptOutputSchema,
   type GenerateVideoScriptOutput,
   generateVideoScriptPrompt
-} from '@/ai/prompts/video-script';
+} from '@/ai/prompts/gen-text/video-script';
 
 export type { GenerateVideoScriptInput, GenerateVideoScriptOutput };
 

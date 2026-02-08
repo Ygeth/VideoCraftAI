@@ -17,7 +17,7 @@ import {
   CharacterDetailsSchema,
   generateCharacterDetailsPrompt,
   characterImagePromptTemplate
-} from '@/ai/prompts/character';
+} from '@/ai/prompts/gen-text/character';
 
 export type { GenerateCharacterInput };
 
